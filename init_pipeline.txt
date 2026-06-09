@@ -1,0 +1,10 @@
+ros2 run rmw_zenoh_cpp rmw_zenohd
+
+ros2 bag play <bag> --loop
+
+ros2 run tf2_ros static_transform_publisher \
+  0 0 0 0 0 0 \
+  map camera_left_rect
+
+ros2 run rviz2 rviz2 --ros-args -p use_sim_time:=true
+

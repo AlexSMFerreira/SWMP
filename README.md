@@ -32,7 +32,7 @@ Current implementation covers stereo reconstruction and georeferenced visualisat
 
 - ROS 2 Humble, Python 3.10+, `rmw_zenoh_cpp`, `cv_bridge`, `rviz2`, `tf2_ros`
 - Python: `pip install -r requirements.txt` (numpy, opencv-python, onnx, onnxruntime)
-- HITNet ONNX model at `models/eth3d/saved_model_240x320/model_float32.onnx` — download from [onnx-hitnet-stereo-depth-estimation](https://github.com/ibaiGorordo/ONNX-HitNet-Stereo-Depth-estimation)
+- HITNet ONNX model at `models/eth3d/saved_model_240x320/model_float32.onnx` — download from [this repository](https://github.com/PINTO0309/PINTO_model_zoo/tree/main/142_HITNET)
 
 ---
 

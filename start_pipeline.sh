@@ -36,7 +36,7 @@ sleep 2
 
 # ── 2. ROS bag ───────────────────────────────────────────────────────────────
 tmux new-window -t "$SESSION" -n "bag" \
-  "bash -c '${PREAMBLE}; echo \"[bag] Playing ${BAG} --loop\"; ros2 bag play \"${BAG}\" --loop --rate 1.0 --clock 200; exec bash'"
+  "bash -c '${PREAMBLE}; echo \"[bag] Playing ${BAG} --loop --clock\"; ros2 bag play \"${BAG}\" --loop --rate 1.0 --clock 200; exec bash'"
 echo " [2/8] ros bag"
 sleep 1
 
@@ -80,6 +80,11 @@ sleep 2
 tmux new-window -t "$SESSION" -n "pointcloud" \
   "bash -c '${PREAMBLE}; echo \"[pointcloud] Starting...\"; python3 Nodes/ros2_pointcloud_node.py --ros-args -p use_sim_time:=true; exec bash'"
 echo " [9/9] point cloud"
+
+# ── 10. Altimeter publisher (sensor_msgs/Range + static TF frames) ────────────
+tmux new-window -t "$SESSION" -n "altimeters" \
+  "bash -c '${PREAMBLE}; echo \"[altimeters] Starting...\"; python3 Nodes/ros2_altimeter_publisher.py --ros-args -p use_sim_time:=true; exec bash'"
+echo " [10/10] altimeter publisher"
 
 # Select the bag window on attach (most useful to watch for clock ticking)
 tmux select-window -t "$SESSION:bag"

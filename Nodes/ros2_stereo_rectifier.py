@@ -1,3 +1,4 @@
+import time
 import numpy as np
 import cv2
 import rclpy
@@ -60,7 +61,7 @@ class RectifyNode(Node):
         self._rect_info_msg: CameraInfo | None = None
 
         # Timestamp of the last successfully processed stereo pair
-        self._last_frame_time: float = self.get_clock().now().nanoseconds * 1e-9
+        self._last_frame_time: float = time.monotonic()
         # Timestamp of the last incoming message (either camera), used to detect time jumps
         self._last_msg_stamp: float | None = None
 
@@ -131,14 +132,14 @@ class RectifyNode(Node):
         """Tears down and recreates the synchronizer to flush stale queue state."""
         self.get_logger().warn(f'Resetting sync: {reason}')
         self._build_sync()
-        self._last_frame_time = self.get_clock().now().nanoseconds * 1e-9
+        self._last_frame_time = time.monotonic()
         self._last_msg_stamp  = None
 
     # ── Watchdog ──────────────────────────────────────────────────────────────
 
     def _cb_watchdog(self):
         """Fires every watchdog_timeout seconds. Resets sync if no frame arrived."""
-        now = self.get_clock().now().nanoseconds * 1e-9
+        now = time.monotonic()
         elapsed = now - self._last_frame_time
         if elapsed > self._watchdog_t:
             self._reset_sync(f'no frame for {elapsed:.1f}s')
@@ -202,7 +203,7 @@ class RectifyNode(Node):
             self._reset_sync(f'time jump {self._last_msg_stamp:.1f}→{stamp_sec:.1f}s')
             return  # Drop this frame; next callback will use the fresh sync
         self._last_msg_stamp  = stamp_sec
-        self._last_frame_time = self.get_clock().now().nanoseconds * 1e-9
+        self._last_frame_time = time.monotonic()
 
         stamp = left_msg.header.stamp
 

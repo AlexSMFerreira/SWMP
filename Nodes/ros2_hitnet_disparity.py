@@ -6,6 +6,7 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 import message_filters
 from sensor_msgs.msg import CameraInfo, Image, CompressedImage
+from std_msgs.msg import Float64
 from cv_bridge import CvBridge
 
 import cv2
@@ -55,16 +56,43 @@ class HitNetDisparityNode(Node):
         self._pub_disp_raw   = self.create_publisher(Image,           p('disp_raw_topic').value,  pub_qos)
         self._pub_disp_color = self.create_publisher(CompressedImage, p('disp_color_topic').value, vis_qos)
         self._pub_debug      = self.create_publisher(CompressedImage, '/stereo/debug/horizon/compressed', vis_qos)
+        self._pub_roll       = self.create_publisher(Float64,         '/stereo/horizon_roll', vis_qos)
 
         self._sub_info = self.create_subscription(
             CameraInfo, p('rect_info_topic').value, self._cb_camera_info, pub_qos
         )
         self.get_logger().info("HITNet Node waiting for rectified CameraInfo...")
 
-        self._sub_left  = message_filters.Subscriber(self, Image, p('left_rect_topic').value,  qos_profile=pub_qos)
-        self._sub_right = message_filters.Subscriber(self, Image, p('right_rect_topic').value, qos_profile=pub_qos)
+        self._sync_qos = pub_qos
+        self._sub_left = self._sub_right = self._sync = None
+        self._last_msg_stamp: float | None = None
+        self._last_frame_time: float = time.monotonic()
+        self._build_sync()
+        self.create_timer(3.0, self._cb_watchdog)
+
+    # ── Sync management ───────────────────────────────────────────────────────
+
+    def _build_sync(self):
+        p = self.get_parameter
+        if self._sub_left is not None:
+            self.destroy_subscription(self._sub_left.sub)
+        if self._sub_right is not None:
+            self.destroy_subscription(self._sub_right.sub)
+        self._sub_left  = message_filters.Subscriber(self, Image, p('left_rect_topic').value,  qos_profile=self._sync_qos)
+        self._sub_right = message_filters.Subscriber(self, Image, p('right_rect_topic').value, qos_profile=self._sync_qos)
         self._sync = message_filters.TimeSynchronizer([self._sub_left, self._sub_right], queue_size=10)
         self._sync.registerCallback(self._cb_images)
+
+    def _reset_sync(self, reason: str):
+        self.get_logger().warn(f'HITNet: resetting sync — {reason}')
+        self._build_sync()
+        self._last_frame_time = time.monotonic()
+        self._last_msg_stamp = None
+
+    def _cb_watchdog(self):
+        elapsed = time.monotonic() - self._last_frame_time
+        if elapsed > 3.0:
+            self._reset_sync(f'no frame for {elapsed:.1f}s')
 
     # ── Camera info ───────────────────────────────────────────────────────────
 
@@ -192,6 +220,13 @@ class HitNetDisparityNode(Node):
         if not self.model_ready:
             return
 
+        stamp_sec = left_msg.header.stamp.sec + left_msg.header.stamp.nanosec * 1e-9
+        if self._last_msg_stamp is not None and stamp_sec < self._last_msg_stamp - 1.0:
+            self._reset_sync(f'time jump {self._last_msg_stamp:.1f}→{stamp_sec:.1f}s')
+            return
+        self._last_msg_stamp = stamp_sec
+        self._last_frame_time = time.monotonic()
+
         start_time = time.perf_counter()
 
         left_cv  = self._bridge.imgmsg_to_cv2(left_msg,  desired_encoding='bgr8')
@@ -219,7 +254,16 @@ class HitNetDisparityNode(Node):
             horizon_masked = self._apply_margin(horizon_raw, h)
             source = 'fallback'
 
-        # 2. Build sky mask from the nudged horizon
+        # 2. Publish roll angle derived from the horizon direction.
+        # Normalise direction to point right (dx > 0) so atan2 gives a consistent sign.
+        dx, dy = float(horizon_raw[1][0]), float(horizon_raw[1][1])
+        if dx < 0:
+            dx, dy = -dx, -dy
+        roll_msg = Float64()
+        roll_msg.data = float(np.arctan2(dy, dx))
+        self._pub_roll.publish(roll_msg)
+
+        # 3. Build sky mask from the nudged horizon
         sky_mask = self._make_sky_mask(left_cv.shape, horizon_masked)
 
         # 3. Run disparity inference

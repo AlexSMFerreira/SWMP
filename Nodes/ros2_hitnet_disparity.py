@@ -31,7 +31,7 @@ class HitNetDisparityNode(Node):
         self.declare_parameter('disp_raw_topic',     '/stereo/disparity')
         self.declare_parameter('disp_color_topic',   '/stereo/disparity_color/compressed')
         self.declare_parameter('model_path',         'models/eth3d/saved_model_240x320/model_float32.onnx')
-        self.declare_parameter('max_distance',       200.0)
+        self.declare_parameter('max_distance',       30.0)
         self.declare_parameter('sky_crop_pct',       0.40)   # Fallback if Hough fails
         self.declare_parameter('horizon_margin_pct', 0.03)   # Downward margin below detected horizon
         self.declare_parameter('debug_horizon',      True)

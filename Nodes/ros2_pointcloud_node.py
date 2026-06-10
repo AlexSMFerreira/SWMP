@@ -23,6 +23,7 @@ class PointCloudNode(Node):
         self.declare_parameter('max_depth',        200.0) # Cutoff distance (removes sky/noise)
         self.declare_parameter('min_depth',        0.1)   # Minimum valid distance
         self.declare_parameter('downsample_factor', 3)    # 1 = Full, 2 = Half, 3 = Third (Boosts FPS)
+        self.declare_parameter('roll_topic',       '/stereo/horizon_roll')  # '' to disable
 
         p = self.get_parameter
 
@@ -46,7 +47,9 @@ class PointCloudNode(Node):
         self._sub_info = self.create_subscription(
             CameraInfo, p('rect_info_topic').value, self._cb_camera_info, sub_qos
         )
-        self.create_subscription(Float64, '/stereo/horizon_roll', self._cb_roll, sub_qos)
+        roll_topic = p('roll_topic').value
+        if roll_topic:
+            self.create_subscription(Float64, roll_topic, self._cb_roll, sub_qos)
         self.get_logger().info("PointCloud Node waiting for Q-Matrix metadata...")
 
         self._sync_qos = sub_qos

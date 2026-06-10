@@ -2,9 +2,34 @@ ros2 run rmw_zenoh_cpp rmw_zenohd
 
 ros2 bag play <bag> --loop
 
+# ── TF tree + live pose ─────────────────────────────────────────────────────────
+# Dynamic map -> base_link from the live /nav solution (PoseBroadcasterNode). Also
+# republishes the pose on /airship/pose_enu (frame map) for a clean RViz arrow.
+# The old fixed "static_transform_publisher 0 0 0 0 0 0 map camera_left_rect" is GONE.
+python3 Nodes/ros2_pose_broadcaster.py --ros-args -p use_sim_time:=true
+
+# Static base_link -> camera_left_rect (lever arm). IDENTITY PLACEHOLDER until the
+# GPS-antenna -> camera offset is measured (Phase 3 in NEXT_STEPS_POSE.md). The cloud
+# is already remapped to a ROS body convention (X-fwd, Y-left, Z-up) in the pointcloud
+# node, so this stays a pure translation/rotation once the lever arm is known.
 ros2 run tf2_ros static_transform_publisher \
   0 0 0 0 0 0 \
-  map camera_left_rect
+  base_link camera_left_rect
+
+# Static base_link -> rslidar (lidar mounting). IDENTITY PLACEHOLDER until the lidar
+# offset/orientation on the airship is measured. Without this the /rslidar_points cloud
+# (frame_id "rslidar") has no path to "map" and RViz shows nothing for it.
+ros2 run tf2_ros static_transform_publisher \
+  0 0 0 0 0 0 \
+  base_link rslidar
+
+# Optional: altitude/attitude validation against the laser altimeters (Phase 4).
+python3 Nodes/ros2_pose_validation.py --ros-args -p use_sim_time:=true
 
 ros2 run rviz2 rviz2 --ros-args -p use_sim_time:=true
-
+# In RViz set Fixed Frame = "map", then add:
+#   Pose         on /airship/pose_enu   -> live position + orientation arrow
+#   Path         on /airship/path_enu   -> accumulated ENU trajectory
+#   TF                                  -> base_link axis triad
+#   PointCloud2  on /stereo/points      -> stereo cloud, auto-transformed into map
+#   PointCloud2  on /rslidar_points      -> lidar cloud (needs the base_link->rslidar TF above)

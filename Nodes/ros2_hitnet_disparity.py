@@ -1,3 +1,6 @@
+import os
+import sys
+
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
@@ -8,6 +11,12 @@ from cv_bridge import CvBridge
 import cv2
 import numpy as np
 import time
+
+# The `hitnet` package and `models/` live at the repo root, while this node lives
+# in Nodes/. Add the repo root to the path so `import hitnet` resolves regardless
+# of where the script sits (run the pipeline from the repo root so the relative
+# `models/...` default also resolves).
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from hitnet import HitNet, ModelType, CameraConfig
 

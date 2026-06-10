@@ -25,6 +25,11 @@ A ROS 2 pipeline for real-time ocean surface reconstruction from an airship-moun
 - Python 3.10+
 - `rmw_zenoh_cpp` middleware
 - `cv_bridge`, `message_filters` (standard ROS 2 packages)
+- `rviz2`, `tf2_ros` (ship with ROS 2 — used by the pose broadcaster / visualisation)
+
+The pose broadcaster and validation nodes use only standard ROS 2 packages
+(`rclpy`, `tf2_ros`, `nav_msgs`, `geometry_msgs`, `sensor_msgs`) plus `numpy` — no extra
+geodesy library is required; the LLA→ENU conversion is built in (WGS84 ECEF).
 
 ### Python
 
@@ -32,7 +37,7 @@ A ROS 2 pipeline for real-time ocean surface reconstruction from an airship-moun
 pip install -r requirements.txt
 ```
 
-`requirements.txt` installs: `opencv-python`, `imread-from-url`, `onnx`, `onnxruntime`.
+`requirements.txt` installs: `numpy`, `opencv-python`, `imread-from-url`, `onnx`, `onnxruntime`.
 
 > For GPU inference install `onnxruntime-gpu` instead of `onnxruntime`.
 
@@ -119,14 +124,53 @@ Key parameters:
 | `min_depth` | `0.1` | Minimum valid depth (metres) |
 | `downsample_factor` | `3` | Point cloud thinning factor (1 = full density) |
 
-### 6. Visualise in RViz
+### 6. Broadcast the live pose (TF tree)
+
+The airship pose is driven from the `/nav` navigation solution so clouds land in a real
+ENU world frame instead of stacking at the origin. Start the broadcaster and a static
+lever-arm transform:
 
 ```bash
-# Publish a static transform so RViz has a map → camera frame
-ros2 run tf2_ros static_transform_publisher 0 0 0 0 0 0 map camera_left_rect
+# Dynamic map → base_link from /nav (geodetic LLA → local ENU; orientation is body→ENU)
+python3 Nodes/ros2_pose_broadcaster.py --ros-args -p use_sim_time:=true
 
+# Static base_link → camera_left_rect (lever arm — identity placeholder until calibrated)
+ros2 run tf2_ros static_transform_publisher 0 0 0 0 0 0 base_link camera_left_rect
+```
+
+The TF tree is `map → base_link → camera_left_rect`. The broadcaster also republishes the
+pose as `geometry_msgs/PoseStamped` on `/airship/pose_enu` (frame `map`) for direct
+display. See `NEXT_STEPS_POSE.md` for the lever-arm calibration (Phase 3) and altimeter
+validation (Phase 4) follow-ups.
+
+### 7. Visualise position and orientation in RViz
+
+```bash
 ros2 run rviz2 rviz2 --ros-args -p use_sim_time:=true
 ```
+
+Set the **Fixed Frame** to `map`, then add:
+
+- **Pose** display on `/airship/pose_enu` — an arrow showing live position and **direction
+  of travel** (heading derived from the trajectory; tune `heading_window_m`, or set
+  `orientation_source:=nav` for true INS body attitude instead).
+- **Path** display on `/airship/path_enu` — the accumulated ENU trajectory (track) of the
+  airship.
+- **TF** display — the `base_link` axis triad (red=forward/X, green=left/Y, blue=up/Z),
+  confirming orientation in real time.
+- **PointCloud2** display on `/stereo/points` — the cloud, transformed into `map`
+  automatically through the TF tree.
+
+### 8. (Optional) Validate altitude/attitude
+
+```bash
+python3 Nodes/ros2_pose_validation.py --ros-args -p use_sim_time:=true \
+  -p altimeter_baseline_y:=<measured_metres>
+```
+
+Prints a rolling comparison of the nav altitude against the airship laser altimeters
+(residual, nav roll vs altimeter-derived roll, lightware validity). See Phase 4 in
+`NEXT_STEPS_POSE.md`.
 
 Add a `PointCloud2` display pointing at `/stereo/points` and a `CompressedImage` display for `/stereo/disparity_color/compressed`.
 

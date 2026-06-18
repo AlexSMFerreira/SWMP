@@ -4,8 +4,20 @@ AltimeterPublisherNode — converts raw altimeter messages to sensor_msgs/Range 
 and broadcasts static TF frames for each altimeter relative to base_link.
 
 ── Inputs (types confirmed from bag 2026_LEIXOES_LOGS/airship_20260528_115149) ──────────
-  /airship/left/altimeter/height       geometry_msgs/PoseStamped   AGL height in position.y (m)
-  /airship/right/altimeter/height      geometry_msgs/PoseStamped   AGL height in position.y (m)
+  /airship/left/altimeter/height       geometry_msgs/PoseStamped   AGL height in position.y,
+                                                                    RAW UNIT IS CENTIMETRES —
+                                                                    converted to metres below.
+                                                                    Cross-checked against
+                                                                    /episea/nav/water_level
+                                                                    (see CLAUDE.md): treating
+                                                                    raw value as metres gives
+                                                                    a ~50-90 m AGL that is
+                                                                    inconsistent with the
+                                                                    near-zero nav_alt-water_level
+                                                                    AGL signal; treating it as
+                                                                    centimetres (sub-metre AGL)
+                                                                    is consistent.
+  /airship/right/altimeter/height      geometry_msgs/PoseStamped   same as left — centimetres.
   /lightware_altimeter/left/altimeter  geometry_msgs/PointStamped  slant range in point.z (m);
                                                                     -1.0 means "no return"
 
@@ -14,7 +26,8 @@ and broadcasts static TF frames for each altimeter relative to base_link.
   /altimeter/right/range       sensor_msgs/Range   right downward laser (frame: altimeter_right)
   /altimeter/lightware/range   sensor_msgs/Range   Lightware slant range (frame: altimeter_lightware)
 
-── TF frames (static, children of base_link, +Z pointing downward) ─────────────────────
+── TF frames (static, children of base_link, sensor +X axis pointing downward — that is
+   the axis sensor_msgs/Range measures along, per REP 117) ──────────────────────────────
   altimeter_left        y = -altimeter_baseline_y / 2  (placeholder — measure physically)
   altimeter_right       y = +altimeter_baseline_y / 2  (placeholder — measure physically)
   altimeter_lightware   at origin                       (placeholder — measure physically)
@@ -36,18 +49,20 @@ from tf2_ros import StaticTransformBroadcaster
 
 def _downward_transform(parent: str, child: str, x: float, y: float, z: float) -> TransformStamped:
     """Return a TransformStamped that places `child` at (x,y,z) relative to `parent`
-    with +Z pointing in the -Z direction of the parent (i.e. downward for FLU base_link).
-    Rotation: 180° around X axis → quaternion (x=1, y=0, z=0, w=0)."""
+    with the sensor's +X axis pointing in the -Z direction of the parent (downward for
+    FLU base_link). sensor_msgs/Range measures along the frame's +X axis, not +Z (REP
+    117) — so the range cone needs the *X* axis rotated down, not Z.
+    Rotation: +90° about Y → quaternion (x=0, y=sin45°, z=0, w=cos45°)."""
     t = TransformStamped()
     t.header.frame_id = parent
     t.child_frame_id = child
     t.transform.translation.x = x
     t.transform.translation.y = y
     t.transform.translation.z = z
-    t.transform.rotation.x = 1.0
-    t.transform.rotation.y = 0.0
+    t.transform.rotation.x = 0.0
+    t.transform.rotation.y = math.sin(math.radians(45.0))
     t.transform.rotation.z = 0.0
-    t.transform.rotation.w = 0.0
+    t.transform.rotation.w = math.cos(math.radians(45.0))
     return t
 
 
@@ -126,12 +141,12 @@ class AltimeterPublisherNode(Node):
 
     def _cb_left(self, msg: PoseStamped):
         r = self._base_range('altimeter_left', msg.header.stamp)
-        r.range = float(msg.pose.position.y)
+        r.range = float(msg.pose.position.y) * 0.01   # raw value is centimetres, not metres
         self._pub_left.publish(r)
 
     def _cb_right(self, msg: PoseStamped):
         r = self._base_range('altimeter_right', msg.header.stamp)
-        r.range = float(msg.pose.position.y)
+        r.range = float(msg.pose.position.y) * 0.01   # raw value is centimetres, not metres
         self._pub_right.publish(r)
 
     def _cb_lw(self, msg: PointStamped):

@@ -50,8 +50,8 @@ class SGMCudaDisparityNode(Node):
 
         # ── Disparity tuning (1 m baseline, medium-long range over water) ──────
         self.declare_parameter('min_disparity',      0)
-        self.declare_parameter('num_disparities',    128)  # cuda SGM requires 64, 128 or 256; Z_min = fx/128 m
-        self.declare_parameter('block_size',         7)    # only feeds the P1/P2 smoothness terms
+        self.declare_parameter('num_disparities',    256)  # cuda SGM requires 64, 128 or 256; Z_min = fx/128 m
+        self.declare_parameter('block_size',         9)    # only feeds the P1/P2 smoothness terms
         self.declare_parameter('uniqueness_ratio',   10)
         # StereoSGM mode (the named enum is not exposed in the Python binding, so
         # use the int values shared with SGBM): MODE_HH=1 (full, best), MODE_HH4=3 (faster).

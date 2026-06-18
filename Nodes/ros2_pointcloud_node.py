@@ -20,10 +20,11 @@ class PointCloudNode(Node):
         self.declare_parameter('rect_info_topic',  '/stereo/camera_info_rect')
         self.declare_parameter('pointcloud_topic', '/stereo/points')
         
-        self.declare_parameter('max_depth',        200.0) # Cutoff distance (removes sky/noise)
-        self.declare_parameter('min_depth',        0.1)   # Minimum valid distance
+        self.declare_parameter('max_depth',        45.0)  # Beyond ~45 m a ±0.5 px error → ±3+ m depth uncertainty
+        self.declare_parameter('min_depth',        2.45)  # Below ~2.45 m disparity saturates / hits baseline limit
         self.declare_parameter('downsample_factor', 3)    # 1 = Full, 2 = Half, 3 = Third (Boosts FPS)
-        self.declare_parameter('roll_topic',       '/stereo/horizon_roll')  # '' to disable
+        self.declare_parameter('roll_topic',        '/stereo/horizon_roll')   # '' to disable
+        self.declare_parameter('pitch_topic',       '/stereo/horizon_pitch')  # '' to disable
 
         p = self.get_parameter
 
@@ -33,6 +34,7 @@ class PointCloudNode(Node):
         self.min_depth = p('min_depth').value
         self.ds = p('downsample_factor').value
         self._roll_rad: float = 0.0
+        self._pitch_rad: float = 0.0
 
         # ── PUBLISHERS ────────────────────────────────────────────────────────
         # With Zenoh middleware, we can safely use standard RELIABLE QoS
@@ -50,6 +52,9 @@ class PointCloudNode(Node):
         roll_topic = p('roll_topic').value
         if roll_topic:
             self.create_subscription(Float64, roll_topic, self._cb_roll, sub_qos)
+        pitch_topic = p('pitch_topic').value
+        if pitch_topic:
+            self.create_subscription(Float64, pitch_topic, self._cb_pitch, sub_qos)
         self.get_logger().info("PointCloud Node waiting for Q-Matrix metadata...")
 
         self._sync_qos = sub_qos
@@ -83,6 +88,9 @@ class PointCloudNode(Node):
 
     def _cb_roll(self, msg: Float64):
         self._roll_rad = msg.data
+
+    def _cb_pitch(self, msg: Float64):
+        self._pitch_rad = msg.data
 
     def _cb_camera_info(self, msg: CameraInfo):
         """Extracts the 4x4 Disparity-to-Depth Q Matrix packed by the Rectifier Node."""
@@ -140,6 +148,17 @@ class PointCloudNode(Node):
             valid_points[:, 0] = c * x_cv + s * y_cv
             valid_points[:, 1] = -s * x_cv + c * y_cv
 
+        # Cancel drone pitch: rotate around camera X (right) to keep the horizon
+        # fixed vertically. Positive pitch = drone nose up = horizon below centre.
+        # Rotation by -pitch around X_cv: Y' = cos(p)*Y + sin(p)*Z, Z' = -sin(p)*Y + cos(p)*Z
+        p_pitch = self._pitch_rad
+        if abs(p_pitch) > 1e-4:
+            cp, sp = np.cos(p_pitch), np.sin(p_pitch)
+            y_cv = valid_points[:, 1].copy()
+            z_cv = valid_points[:, 2].copy()
+            valid_points[:, 1] = cp * y_cv - sp * z_cv
+            valid_points[:, 2] = sp * y_cv + cp * z_cv
+
         # 6. Super-fast RGB byte packing for ROS 2 PointCloud2 standards
         b = valid_colors[:, 0].astype(np.uint32)
         g = valid_colors[:, 1].astype(np.uint32)
@@ -183,7 +202,13 @@ class PointCloudNode(Node):
         self._pub_pc.publish(msg)
 
         latency = (time.perf_counter() - start_time) * 1000
-        self.get_logger().info(f"Published Cloud: {len(valid_points)} points | Compute: {latency:.1f}ms")
+        valid_depth = depth[mask]
+        if self.ds > 1:
+            valid_depth = valid_depth[::self.ds]
+        self.get_logger().info(
+            f"Published Cloud: {len(valid_points)} points | Compute: {latency:.1f}ms | "
+            f"Depth min={valid_depth.min():.2f}m max={valid_depth.max():.2f}m mean={valid_depth.mean():.2f}m"
+        )
 
 def main(args=None):
     rclpy.init(args=args)

@@ -32,9 +32,9 @@ class HitNetDisparityNode(Node):
         self.declare_parameter('disp_raw_topic',     '/stereo/disparity')
         self.declare_parameter('disp_color_topic',   '/stereo/disparity_color/compressed')
         self.declare_parameter('model_path',         'models/eth3d/saved_model_240x320/model_float32.onnx')
-        self.declare_parameter('max_distance',       30.0)
+        self.declare_parameter('max_distance',       100.0)
         self.declare_parameter('sky_crop_pct',       0.40)   # Fallback if Hough fails
-        self.declare_parameter('horizon_margin_pct', 0.03)   # Downward margin below detected horizon
+        self.declare_parameter('horizon_margin_pct', 0.02)   # Downward margin below detected horizon
         self.declare_parameter('debug_horizon',      True)
 
         p = self.get_parameter
@@ -43,6 +43,8 @@ class HitNetDisparityNode(Node):
         self.depth_estimator = None
         self.model_ready = False
         self.fallback_crop_pct = p('sky_crop_pct').value
+        self._fy: float | None = None
+        self._cy: float | None = None
 
         # Last known good horizon: tuple(mean: np.ndarray, direction: np.ndarray)
         # Already has the margin nudge baked in, ready to use directly as a mask.
@@ -56,7 +58,8 @@ class HitNetDisparityNode(Node):
         self._pub_disp_raw   = self.create_publisher(Image,           p('disp_raw_topic').value,  pub_qos)
         self._pub_disp_color = self.create_publisher(CompressedImage, p('disp_color_topic').value, vis_qos)
         self._pub_debug      = self.create_publisher(CompressedImage, '/stereo/debug/horizon/compressed', vis_qos)
-        self._pub_roll       = self.create_publisher(Float64,         '/stereo/horizon_roll', vis_qos)
+        self._pub_roll       = self.create_publisher(Float64,         '/stereo/horizon_roll',  vis_qos)
+        self._pub_pitch      = self.create_publisher(Float64,         '/stereo/horizon_pitch', vis_qos)
 
         self._sub_info = self.create_subscription(
             CameraInfo, p('rect_info_topic').value, self._cb_camera_info, pub_qos
@@ -101,6 +104,8 @@ class HitNetDisparityNode(Node):
             return
 
         fx_rect = msg.p[0]
+        self._fy = float(msg.p[5])
+        self._cy = float(msg.p[6])
         p2_flattened = [float(v) for v in msg.distortion_model.split(';')]
         baseline = abs(-p2_flattened[3] / fx_rect)
 
@@ -151,6 +156,15 @@ class HitNetDisparityNode(Node):
         mean = pts.mean(axis=0)
         _, _, vt = np.linalg.svd(pts - mean)
         direction = vt[0]
+
+        # Re-anchor mean to the centre column so that roll only tilts the
+        # horizon line; it does not shift it vertically at the image centre.
+        w = img_bgr.shape[1]
+        if abs(direction[0]) > 1e-6:
+            t = (w / 2 - mean[0]) / direction[0]
+            mean = np.array([w / 2, mean[1] + t * direction[1]], dtype=np.float32)
+        else:
+            mean = np.array([w / 2, mean[1]], dtype=np.float32)
 
         return mean, direction
 
@@ -254,7 +268,7 @@ class HitNetDisparityNode(Node):
             horizon_masked = self._apply_margin(horizon_raw, h)
             source = 'fallback'
 
-        # 2. Publish roll angle derived from the horizon direction.
+        # 2. Publish roll and pitch angles derived from the detected horizon.
         # Normalise direction to point right (dx > 0) so atan2 gives a consistent sign.
         dx, dy = float(horizon_raw[1][0]), float(horizon_raw[1][1])
         if dx < 0:
@@ -262,6 +276,16 @@ class HitNetDisparityNode(Node):
         roll_msg = Float64()
         roll_msg.data = float(np.arctan2(dy, dx))
         self._pub_roll.publish(roll_msg)
+
+        # Pitch: how far the horizon sits above/below the optical centre.
+        # When the drone nose is up, the horizon shifts downward (larger y → y > cy → pitch > 0).
+        pitch_msg = Float64()
+        if self._fy and abs(self._fy) > 1e-6:
+            y_horizon = float(horizon_raw[0][1])  # already anchored to x = w/2
+            pitch_msg.data = float(np.arctan2(y_horizon - self._cy, self._fy))
+        else:
+            pitch_msg.data = 0.0
+        self._pub_pitch.publish(pitch_msg)
 
         # 3. Build sky mask from the nudged horizon
         sky_mask = self._make_sky_mask(left_cv.shape, horizon_masked)

@@ -44,17 +44,21 @@ class SGBMDisparityNode(Node):
         # ── Disparity tuning (1 m baseline, medium-long range over water) ──────
         self.declare_parameter('min_disparity',      0)
         self.declare_parameter('num_disparities',    128)   # divisible by 16; Z_min = fx/128 m
-        self.declare_parameter('block_size',         7)     # odd; matched-block window
-        self.declare_parameter('uniqueness_ratio',   15)    # reject ambiguous matches on water
-        self.declare_parameter('speckle_window_size', 200)  # remove larger noise blobs
-        self.declare_parameter('speckle_range',      2)     # SGBM scales this x16 internally
+        self.declare_parameter('block_size',         5)     # odd; matched-block window
+        self.declare_parameter('uniqueness_ratio',   10)    # reject ambiguous matches on water
+        self.declare_parameter('speckle_window_size', 6)  # remove larger noise blobs
+        self.declare_parameter('speckle_range',      1)     # SGBM scales this x16 internally
         self.declare_parameter('disp12_max_diff',    1)     # left-right consistency check
-        self.declare_parameter('pre_filter_cap',     31)
-        self.declare_parameter('mode',               cv2.STEREO_SGBM_MODE_SGBM_3WAY)
-
+        self.declare_parameter('pre_filter_cap',     63)
+        self.declare_parameter('mode',               cv2.STEREO_SGBM_MODE_SGBM)
         self.declare_parameter('sky_crop_pct',       0.40)
         self.declare_parameter('horizon_margin_pct', 0.03)
         self.declare_parameter('debug_horizon',      True)
+
+        # ── WLS post-filter (edge-aware smoothing, fills low-confidence gaps) ──
+        self.declare_parameter('use_wls_filter',     True)
+        self.declare_parameter('wls_lambda',         8000.0)  # regularization: higher = smoother
+        self.declare_parameter('wls_sigma',          1.5)     # edge sensitivity: higher = less edge-aware
 
         p = self.get_parameter
         self._bridge = CvBridge()
@@ -81,6 +85,13 @@ class SGBMDisparityNode(Node):
             preFilterCap=p('pre_filter_cap').value,
             mode=p('mode').value,
         )
+
+        self._use_wls = p('use_wls_filter').value
+        if self._use_wls:
+            self._right_matcher = cv2.ximgproc.createRightMatcher(self._matcher)
+            self._wls_filter = cv2.ximgproc.createDisparityWLSFilter(matcher_left=self._matcher)
+            self._wls_filter.setLambda(p('wls_lambda').value)
+            self._wls_filter.setSigmaColor(p('wls_sigma').value)
 
         pub_qos = QoSProfile(reliability=ReliabilityPolicy.RELIABLE,    history=HistoryPolicy.KEEP_LAST, depth=5)
         vis_qos = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, history=HistoryPolicy.KEEP_LAST, depth=5)
@@ -114,6 +125,9 @@ class SGBMDisparityNode(Node):
         right_gray = cv2.cvtColor(right_bgr, cv2.COLOR_BGR2GRAY)
 
         raw = self._matcher.compute(left_gray, right_gray)   # CV_16S, x16
+        if self._use_wls:
+            raw_right = self._right_matcher.compute(right_gray, left_gray)
+            raw = self._wls_filter.filter(raw, left_gray, disparity_map_right=raw_right)
         disp = to_float_disparity(raw, self._min_disp)
 
         sky_mask, source = self._masker.compute_mask(left_bgr)

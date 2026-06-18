@@ -1,12 +1,43 @@
 ros2 run rmw_zenoh_cpp rmw_zenohd
 
-ros2 bag play <bag> --loop
+# The nav companion bag (below) always starts a few seconds after <bag> but both stop
+# within milliseconds of each other (checked via `ros2 bag info` across every bag pair
+# in this dataset). Skip that head start on <bag> with --start-offset so both bags end
+# up the same duration — otherwise --loop on each runs on a different period and they
+# drift in and out of phase, eventually pairing a camera frame with nav data from the
+# wrong point in time. --start-offset is re-applied on every --loop iteration, not just
+# the first (verified empirically). Compute the offset:
+#   python3 -c "
+#   import rosbag2_py
+#   cam = rosbag2_py.Info().read_metadata('<bag>', 'sqlite3')
+#   nav = rosbag2_py.Info().read_metadata('<bag_dir>/ros2_nav/<bag_name>_nav', 'sqlite3')
+#   print((nav.starting_time.nanoseconds - cam.starting_time.nanoseconds) / 1e9)"
+# (for the default bag airship_20260528_115149 this is ~7.29s)
+ros2 bag play <bag> --loop --start-offset <offset>
+
+# Calibrated-nav companion bag — same timestamp, under ros2_nav/, suffixed _nav (see
+# CLAUDE.md "Navigation data"). Required: PoseBroadcaster/PoseValidation below read
+# /episea/nav/* topics, which only exist in this bag, not in <bag> above. Missing for
+# camera bags 081709 and 114301 (and 111018's _nav bag exists but has 0 messages/0s
+# duration — treat it as missing too).
+# If you add --clock to the bag above, do NOT also add it here: two simultaneous /clock
+# publishers will drift in and out of phase and sim time can jump backward. Only one
+# bag should drive /clock; message timestamps (TF stamps etc.) come from each message's
+# own header anyway. The _nav bag was ALSO recorded with its own /clock topic baked in,
+# so even without --clock here the player would replay those recorded /clock messages
+# as normal data — remap them out of the way so they can't reach the real /clock:
+ros2 bag play <bag_dir>/ros2_nav/<bag_name>_nav --loop --remap /clock:=/_navbag_clock_unused
 
 # ── TF tree + live pose ─────────────────────────────────────────────────────────
-# Dynamic map -> base_link from the live /nav solution (PoseBroadcasterNode). Also
-# republishes the pose on /airship/pose_enu (frame map) for a clean RViz arrow.
+# Dynamic map -> base_link from the live /episea/nav/lla solution (PoseBroadcasterNode).
+# Also republishes the pose on /airship/pose_enu (frame map) for a clean RViz arrow.
 # The old fixed "static_transform_publisher 0 0 0 0 0 0 map camera_left_rect" is GONE.
 python3 Nodes/ros2_pose_broadcaster.py --ros-args -p use_sim_time:=true
+
+# Altimeter publisher: raw altimeter topics -> sensor_msgs/Range + static TF frames
+# (altimeter_left/right/lightware -> base_link). Needed for the altimeter Range
+# displays and for ros2_pose_validation.py's roll cross-check below.
+python3 Nodes/ros2_altimeter_publisher.py --ros-args -p use_sim_time:=true
 
 # Static base_link -> camera_left_rect (lever arm). IDENTITY PLACEHOLDER until the
 # GPS-antenna -> camera offset is measured (Phase 3 in NEXT_STEPS_POSE.md). The cloud

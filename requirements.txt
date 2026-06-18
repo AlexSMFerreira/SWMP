@@ -1,5 +1,8 @@
-numpy
-opencv-python
+numpy<2.0
+opencv-contrib-python
 imread-from-url
 onnx
-onnxruntime
+onnxruntime-gpu
+pymap3d
+scipy
+opt_einsum

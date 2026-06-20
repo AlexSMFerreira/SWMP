@@ -12,7 +12,7 @@ ros2 run rmw_zenoh_cpp rmw_zenohd
 #   cam = rosbag2_py.Info().read_metadata('<bag>', 'sqlite3')
 #   nav = rosbag2_py.Info().read_metadata('<bag_dir>/ros2_nav/<bag_name>_nav', 'sqlite3')
 #   print((nav.starting_time.nanoseconds - cam.starting_time.nanoseconds) / 1e9)"
-# (for the default bag airship_20260528_115149 this is ~7.29s)
+# (for the default bag airship_20260528_115912 this is ~6.96s)
 ros2 bag play <bag> --loop --start-offset <offset>
 
 # Calibrated-nav companion bag — same timestamp, under ros2_nav/, suffixed _nav (see
@@ -57,6 +57,22 @@ ros2 run tf2_ros static_transform_publisher \
 # Optional: altitude/attitude validation against the laser altimeters (Phase 4).
 python3 Nodes/ros2_pose_validation.py --ros-args -p use_sim_time:=true
 
+# Rig URDF visualization: urdf_estrutura_ondas (see CLAUDE.md) is the physical rig CAD —
+# real measured fixed-joint offsets for every sensor (cameras, lidar, altimeters, IMUs,
+# GPS antennas) relative to a common rig origin ("estrutura_ondas", coincident with the
+# umix IMU). Lives outside this repo (on the bag drive); built into the ~/ros2_ws overlay
+# as a symlinked package, so source that too. The identity static TF attaches the rig
+# (and its meshes) to the live, nav-driven base_link — justified because umix sits at the
+# rig's (0,0,0) and the rig's Left_cam/right_cam baseline (~0.9998 m) matches the known
+# ~1 m stereo calibration baseline, evidence the rig shares this project's body FLU
+# convention (see CLAUDE.md "Altimeter unit re-verification & real lever-arm wiring").
+source ~/ros2_ws/install/setup.bash
+ros2 launch urdf_estrutura_ondas estrutura_ondas.launch.py
+ros2 run tf2_ros static_transform_publisher 0 0 0 0 0 0 base_link estrutura_ondas
+
+# ~/ros2_ws must be sourced before RViz too (not just before the launch line above) —
+# RViz is the process that resolves package://urdf_estrutura_ondas/meshes/... STL paths
+# for the RobotModel display below.
 ros2 run rviz2 rviz2 --ros-args -p use_sim_time:=true
 # In RViz set Fixed Frame = "map", then add:
 #   Pose         on /airship/pose_enu   -> live position + orientation arrow
@@ -64,3 +80,5 @@ ros2 run rviz2 rviz2 --ros-args -p use_sim_time:=true
 #   TF                                  -> base_link axis triad
 #   PointCloud2  on /stereo/points      -> stereo cloud, auto-transformed into map
 #   PointCloud2  on /rslidar_points      -> lidar cloud (needs the base_link->rslidar TF above)
+#   RobotModel   Description Topic=/robot_description -> rig meshes (cameras, altimeters,
+#                IMUs, GPS antennas), via base_link->estrutura_ondas above

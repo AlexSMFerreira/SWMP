@@ -10,6 +10,8 @@ import cv2
 import numpy as np
 import time
 
+from stereo_common import rescale_disparity
+
 class PointCloudNode(Node):
     def __init__(self):
         super().__init__('pointcloud_node')
@@ -19,17 +21,42 @@ class PointCloudNode(Node):
         self.declare_parameter('disp_raw_topic',   '/stereo/disparity')
         self.declare_parameter('rect_info_topic',  '/stereo/camera_info_rect')
         self.declare_parameter('pointcloud_topic', '/stereo/points')
-        
-        self.declare_parameter('max_depth',        45.0)  # Beyond ~45 m a ±0.5 px error → ±3+ m depth uncertainty
-        self.declare_parameter('min_depth',        2.45)  # Below ~2.45 m disparity saturates / hits baseline limit
+
+        self.declare_parameter('max_depth',        100.0)  # Beyond ~45 m a ±0.5 px error → ±3+ m depth uncertainty
+        self.declare_parameter('min_depth',        0.0)  # Below ~2.45 m disparity saturates / hits baseline limit
         self.declare_parameter('downsample_factor', 3)    # 1 = Full, 2 = Half, 3 = Third (Boosts FPS)
         self.declare_parameter('roll_topic',        '/stereo/horizon_roll')   # '' to disable
         self.declare_parameter('pitch_topic',       '/stereo/horizon_pitch')  # '' to disable
+
+        # The rectifier publishes left/right at native camera resolution (e.g.
+        # 2464x2056). Most disparity backends rescale their output back up to that
+        # same native resolution before publishing — but a backend may instead choose
+        # to publish /stereo/disparity at its own smaller working resolution (see
+        # ros2_waft_disparity.py, which does this to avoid the native-res upscale +
+        # ~20 MB Image publish once its own inference is already running on a small
+        # image). _cb_images below detects a left/disparity size mismatch and resizes
+        # the left (colour) image down to match the disparity's actual resolution
+        # before reprojecting — cheaper than resizing disparity values back up, and
+        # the only correctness requirement (per stereo_common.rescale_disparity) is
+        # that left and disparity have the same shape, not any particular resolution.
+        #
+        # input_width/input_height below downscale *further* on top of whatever
+        # resolution was just settled on — only if that would shrink things further,
+        # never to upscale back toward native — since reprojectImageTo3D + the
+        # boolean mask/RGB indexing below cost roughly one unit of work per pixel
+        # (full native res was observed to fall behind the bag's frame rate badly
+        # enough to build up a memory backlog). Scales the Q matrix's pixel terms
+        # (focal length/principal point) by the same ratio so reprojected XYZ stays in
+        # correct metres; -1/-1 disables this extra step. downsample_factor still
+        # applies afterward, on top, on the resulting point count.
+        self.declare_parameter('input_width',  320)
+        self.declare_parameter('input_height', 240)
 
         p = self.get_parameter
 
         self._bridge = CvBridge()
         self.Q = None
+        self._native_wh = None   # (width, height) from CameraInfo, for scaling Q
         self.max_depth = p('max_depth').value
         self.min_depth = p('min_depth').value
         self.ds = p('downsample_factor').value
@@ -98,7 +125,8 @@ class PointCloudNode(Node):
             return
 
         self.Q = np.array(msg.d, dtype=np.float32).reshape(4, 4)
-        self.get_logger().info("Q-Matrix received! 3D Reprojection Engine Online.")
+        self._native_wh = (msg.width, msg.height)
+        self.get_logger().info(f"Q-Matrix received ({msg.width}x{msg.height})! 3D Reprojection Engine Online.")
         
         # We only need this matrix once, so we disconnect the subscriber to save CPU
         #self.destroy_subscription(self._sub_info)
@@ -120,8 +148,43 @@ class PointCloudNode(Node):
         left_img = self._bridge.imgmsg_to_cv2(left_msg, desired_encoding='bgr8')
         disparity = self._bridge.imgmsg_to_cv2(disp_msg, desired_encoding='32FC1')
 
-        # 2. Project natively into 3D Space (X, Y, Z in meters)
-        points_3D = cv2.reprojectImageTo3D(disparity, self.Q)
+        # 1b. left_img and disparity may already differ in resolution — a disparity
+        # backend can publish at its own working resolution instead of native (see
+        # ros2_waft_disparity.py) — so resize the left (colour) image to match
+        # disparity's actual shape rather than assuming they're equal. Then optionally
+        # downscale *further* (input_width/input_height) before the expensive
+        # reprojection/masking step below (cost scales with pixel count) — only if
+        # that's actually smaller than what we already have, never to upscale back
+        # toward native. Scale Q's pixel-dependent terms (focal length, principal
+        # point — row/col indices 0,1,2,3 in column 3) by the same ratio so the
+        # reprojected X/Y/Z stay in correct metres; Q[3,2] (-1/baseline) is a physical
+        # length, not a pixel quantity, and must NOT be scaled.
+        left_wh = left_img.shape[1::-1]
+        disp_wh = disparity.shape[1::-1]
+        if disp_wh != left_wh:
+            left_img = cv2.resize(left_img, disp_wh, interpolation=cv2.INTER_LINEAR)
+        target_w, target_h = disp_wh
+
+        inp_w = self.get_parameter('input_width').value
+        inp_h = self.get_parameter('input_height').value
+        if inp_w > 0 and inp_h > 0 and inp_w * inp_h < target_w * target_h:
+            left_img = cv2.resize(left_img, (inp_w, inp_h), interpolation=cv2.INTER_LINEAR)
+            disparity = rescale_disparity(disparity, (inp_w, inp_h))
+            target_w, target_h = inp_w, inp_h
+
+        native_w = self._native_wh[0]
+        if target_w == native_w:
+            Q = self.Q
+        else:
+            scale = target_w / native_w
+            Q = self.Q.copy()
+            Q[0, 3] *= scale
+            Q[1, 3] *= scale
+            Q[2, 3] *= scale
+            Q[3, 3] *= scale
+
+        # 2. Project into 3D Space (X, Y, Z in meters)
+        points_3D = cv2.reprojectImageTo3D(disparity, Q)
 
         # 3. Filter limits based on physically valid bounds
         depth = points_3D[:, :, 2]

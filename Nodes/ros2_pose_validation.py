@@ -18,12 +18,13 @@ datum offset, or an attitude bias before trusting the georeferenced cloud.
                                                                  of the detected water
                                                                  surface below the vehicle
                                                                  — independent ground truth
-  /airship/left/altimeter/height    geometry_msgs/PoseStamped   AGL height in position.y,
-                                                                 RAW UNIT IS CENTIMETRES — see
+  /airship/left/altimeter/height    geometry_msgs/PoseStamped   AGL height (metres) is
+                                                                 position.x — see
                                                                  ros2_altimeter_publisher.py
-                                                                 and CLAUDE.md; converted to
-                                                                 metres (*0.01) below.
-  /airship/right/altimeter/height   geometry_msgs/PoseStamped   same as left — centimetres.
+                                                                 and CLAUDE.md. position.y is
+                                                                 a magnitude/quality value, not
+                                                                 height.
+  /airship/right/altimeter/height   geometry_msgs/PoseStamped   same as left.
   /lightware_altimeter/left/altimeter  geometry_msgs/PointStamped  slant range in point.z (m);
                                                            -1.0 means "no return" (common over water)
 
@@ -64,8 +65,10 @@ class PoseValidationNode(Node):
         self.declare_parameter('alt_left_topic', '/airship/left/altimeter/height')
         self.declare_parameter('alt_right_topic', '/airship/right/altimeter/height')
         self.declare_parameter('lightware_topic', '/lightware_altimeter/left/altimeter')
-        # Lateral spacing between the two airship altimeters (m). MEASURE THIS — placeholder.
-        self.declare_parameter('altimeter_baseline_y', 1.0)
+        # Lateral spacing between the two airship altimeters (m). Measured from the rig CAD
+        # (urdf_estrutura_ondas/urdf/estrutura_ondas.urdf.xacro): |y_alt_left - y_alt_right|
+        # = |0.46953 - (-0.43967)|.
+        self.declare_parameter('altimeter_baseline_y', 0.9092)
         self.declare_parameter('report_period_s', 5.0)
 
         p = self.get_parameter
@@ -116,11 +119,11 @@ class PoseValidationNode(Node):
         self._water_level_alt = msg.point.z
 
     def _cb_left(self, msg: PoseStamped):
-        self._h_left = msg.pose.position.y * 0.01   # raw value is centimetres, not metres
+        self._h_left = msg.pose.position.x   # AGL in metres; position.y is a magnitude value
         self._accumulate()
 
     def _cb_right(self, msg: PoseStamped):
-        self._h_right = msg.pose.position.y * 0.01  # raw value is centimetres, not metres
+        self._h_right = msg.pose.position.x  # AGL in metres; position.y is a magnitude value
         self._accumulate()
 
     def _cb_lw(self, msg: PointStamped):

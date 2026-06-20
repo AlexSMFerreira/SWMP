@@ -55,9 +55,17 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy, DurabilityPolicy
 
+from builtin_interfaces.msg import Time
 from nav_msgs.msg import Odometry, Path
 from geometry_msgs.msg import TransformStamped, PoseStamped
 from tf2_ros import TransformBroadcaster
+
+
+def _stamp_from_sec(sec: float) -> Time:
+    t = Time()
+    t.sec = int(sec)
+    t.nanosec = int(round((sec - int(sec)) * 1e9))
+    return t
 
 # ── NED->ENU frame rotation ────────────────────────────────────────────────────────────
 # q_enu = q_NED_ENU * q_nav * q_FRD_FLU
@@ -122,7 +130,9 @@ class PoseBroadcasterNode(Node):
         # quaternion (held while the airship is momentarily stationary).
         self._enu_hist = deque(maxlen=600)
         self._last_heading_q = None
-        self._last_stamp = None
+        self._last_stamp = None             # raw nav header stamp (s), for jump detection
+        self._last_published_stamp = None   # unwrapped/re-based stamp (s) actually published
+        self._stamp_offset = 0.0            # cumulative re-base offset (s), see _cb_nav
 
         # ── ENU DATUM ───────────────────────────────────────────────────────────────
         # Stored as (lat_deg, lon_deg, alt_m); passed directly to pymap3d.geodetic2enu.
@@ -204,12 +214,28 @@ class PoseBroadcasterNode(Node):
     # ── Main callback ───────────────────────────────────────────────────────────────
 
     def _cb_nav(self, msg: Odometry):
-        # Detect a backward time jump (bag --loop restart) and drop the heading history so
-        # the velocity estimate is not computed across the position discontinuity.
+        # Detect a backward time jump (bag --loop restart): the nav bag's own header
+        # stamp resets to its start every loop (it isn't --start-offset-corrected like
+        # the camera bag, see CLAUDE.md), so the raw stamp is non-monotonic across loops.
+        # Publishing that raw, now-lower stamp on /tf would be permanently fatal for any
+        # downstream listener: tf2's BufferCore rejects (TF_OLD_DATA) any transform for a
+        # frame whose stamp is lower than the highest one it has already stored for that
+        # frame, with no expiry — so after the first loop, map -> base_link (and anything
+        # chained off it, e.g. point clouds and the rig meshes in RViz's "map" Fixed
+        # Frame) would silently stop updating for the rest of the session. Fix: re-base
+        # ("unwrap") published stamps with a cumulative offset so they keep increasing
+        # seamlessly across every loop boundary, while still tracking the raw stamp 1:1
+        # within a loop. Verified empirically: TF_OLD_DATA for base_link was absent on a
+        # fresh start, then appeared continuously from the first loop wrap onward without
+        # this fix.
         stamp_sec = msg.header.stamp.sec + msg.header.stamp.nanosec * 1e-9
         if self._last_stamp is not None and stamp_sec < self._last_stamp - 1.0:
+            self._stamp_offset += (self._last_published_stamp - stamp_sec) + 1e-3
             self._enu_hist.clear()
         self._last_stamp = stamp_sec
+        published_stamp_sec = stamp_sec + self._stamp_offset
+        self._last_published_stamp = published_stamp_sec
+        published_stamp = _stamp_from_sec(published_stamp_sec)
 
         lat = msg.pose.pose.position.x      # /episea/nav/lla packs geodetic lat in position.x
         lon = msg.pose.pose.position.y      # lon in position.y
@@ -250,8 +276,10 @@ class PoseBroadcasterNode(Node):
                 ).as_quat()
 
         t = TransformStamped()
-        # Stamp from the nav header so TF lookups line up with sensor timestamps.
-        t.header.stamp = msg.header.stamp
+        # Stamp from the (loop-unwrapped) nav header so TF lookups line up with sensor
+        # timestamps and stay strictly increasing across bag --loop restarts — see the
+        # jump-detection comment in _cb_nav above.
+        t.header.stamp = published_stamp
         t.header.frame_id = self._map_frame
         t.child_frame_id = self._base_frame
         t.transform.translation.x = east
@@ -266,7 +294,7 @@ class PoseBroadcasterNode(Node):
 
         # Same pose as a PoseStamped in the map frame for direct RViz display.
         pose = PoseStamped()
-        pose.header.stamp = msg.header.stamp
+        pose.header.stamp = published_stamp
         pose.header.frame_id = self._map_frame
         pose.pose.position.x = east
         pose.pose.position.y = north
@@ -281,7 +309,7 @@ class PoseBroadcasterNode(Node):
         self._path.poses.append(pose)
         if self._path_max > 0 and len(self._path.poses) > self._path_max:
             self._path.poses = self._path.poses[-self._path_max:]
-        self._path.header.stamp = msg.header.stamp
+        self._path.header.stamp = published_stamp
         self._pub_path.publish(self._path)
 
         #if not self._logged_first:

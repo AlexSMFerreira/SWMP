@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Starts the full SWMP pipeline in a tmux session.
 # Usage:  ./start_pipeline.sh [bag_path]
-# Default bag: /media/alex/External/2026_LEIXOES_LOGS/airship_20260528_115149
+# Default bag: /media/alex/External/2026_LEIXOES_LOGS/airship_20260528_115912
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BAG="${1:-/media/alex/External/2026_LEIXOES_LOGS/airship_20260528_115149}"
+BAG="${1:-/media/alex/External/2026_LEIXOES_LOGS/airship_20260528_115912}"
 SESSION="swmp"
 
 # Calibrated-nav companion bag (see CLAUDE.md): same timestamp, lives under ros2_nav/,
@@ -77,7 +77,7 @@ echo ""
 # ── 1. Zenoh daemon ──────────────────────────────────────────────────────────
 tmux new-session -d -s "$SESSION" -n "zenoh" \
   "bash -c '${PREAMBLE}; echo \"[zenoh] Starting...\"; ros2 run rmw_zenoh_cpp rmw_zenohd; exec bash'"
-echo " [1/11] zenoh daemon"
+echo " [1/12] zenoh daemon"
 sleep 2
 
 # ── 2. ROS bag (camera/sensor) ─────────────────────────────────────────────
@@ -85,7 +85,7 @@ sleep 2
 # above) so both bags share the same loop period — see the comment above HAVE_NAV_BAG.
 tmux new-window -t "$SESSION" -n "bag" \
   "bash -c '${PREAMBLE}; echo \"[bag] Playing ${BAG} --loop --clock --start-offset ${CAM_START_OFFSET}\"; ros2 bag play \"${BAG}\" --loop --rate 1.0 --clock 200 --start-offset ${CAM_START_OFFSET}; exec bash'"
-echo " [2/11] ros bag (camera/sensor)"
+echo " [2/12] ros bag (camera/sensor)"
 sleep 1
 
 # ── 3. ROS bag (calibrated nav companion) ───────────────────────────────────
@@ -102,57 +102,79 @@ sleep 1
 if [ "$HAVE_NAV_BAG" -eq 1 ]; then
   tmux new-window -t "$SESSION" -n "navbag" \
     "bash -c '${PREAMBLE}; echo \"[navbag] Playing ${NAV_BAG} --loop (no --clock, /clock remapped, see comment)\"; ros2 bag play \"${NAV_BAG}\" --loop --rate 1.0 --remap /clock:=/_navbag_clock_unused; exec bash'"
-  echo " [3/11] ros bag (calibrated nav)"
+  echo " [3/12] ros bag (calibrated nav)"
   sleep 1
 else
-  echo " [3/11] ros bag (calibrated nav) — SKIPPED, no companion bag found"
+  echo " [3/12] ros bag (calibrated nav) — SKIPPED, no companion bag found"
 fi
 
 # ── 4. Pose broadcaster (map -> base_link from /episea/nav/lla) ──────────────
 tmux new-window -t "$SESSION" -n "pose" \
   "bash -c '${PREAMBLE}; echo \"[pose] Starting broadcaster...\"; python3 Nodes/ros2_pose_broadcaster.py --ros-args -p use_sim_time:=true; exec bash'"
-echo " [4/11] pose broadcaster"
+echo " [4/12] pose broadcaster"
 sleep 1
 
 # ── 5. Static TF: base_link -> camera_left_rect ──────────────────────────────
 tmux new-window -t "$SESSION" -n "tf_cam" \
   "bash -c '${PREAMBLE}; echo \"[tf] base_link -> camera_left_rect\"; ros2 run tf2_ros static_transform_publisher 0 0 0 0 0 0 base_link camera_left_rect; exec bash'"
-echo " [5/11] static TF: base_link -> camera_left_rect"
+echo " [5/12] static TF: base_link -> camera_left_rect"
 
 # ── 6. Static TF: base_link -> rslidar ───────────────────────────────────────
 tmux new-window -t "$SESSION" -n "tf_lidar" \
   "bash -c '${PREAMBLE}; echo \"[tf] base_link -> rslidar\"; ros2 run tf2_ros static_transform_publisher 0 0 0 0 0 0 base_link rslidar; exec bash'"
-echo " [6/11] static TF: base_link -> rslidar"
+echo " [6/12] static TF: base_link -> rslidar"
 sleep 1
 
-# ── 7. RViz ──────────────────────────────────────────────────────────────────
-# LD_PRELOAD forces the system libpthread over snap's copy (avoids GLIBC_PRIVATE error)
+# ── 7. Rig URDF visualization (robot_state_publisher + base_link -> estrutura_ondas) ──
+# urdf_estrutura_ondas (see CLAUDE.md) is the physical rig CAD: real measured fixed-joint
+# offsets for every sensor (cameras, lidar, altimeters, IMUs, GPS antennas) relative to a
+# common rig origin ("estrutura_ondas", coincident with the umix IMU). It lives outside
+# this repo (on the bag drive) and is built into the ~/ros2_ws overlay as a symlinked
+# package — needs `source ~/ros2_ws/install/setup.bash` in addition to the usual ROS
+# setup, hence the separate preamble here. The identity static TF below attaches the rig
+# (and its meshes) to the live, nav-driven base_link so it moves with the airship in RViz
+# instead of sitting at a disconnected origin — justified because umix sits at the rig's
+# (0,0,0) and the camera baseline derived from the rig's Left_cam/right_cam offsets
+# (~0.9998 m) matches the known ~1 m stereo calibration baseline, evidence the rig frame
+# shares this project's body FLU convention (see CLAUDE.md "Altimeter unit
+# re-verification & real lever-arm wiring").
+tmux new-window -t "$SESSION" -n "rig_urdf" \
+  "bash -c '${PREAMBLE}; source ~/ros2_ws/install/setup.bash; echo \"[rig_urdf] Starting robot_state_publisher...\"; ros2 launch urdf_estrutura_ondas estrutura_ondas.launch.py & echo \"[rig_urdf] static TF base_link -> estrutura_ondas\"; ros2 run tf2_ros static_transform_publisher 0 0 0 0 0 0 base_link estrutura_ondas; exec bash'"
+echo " [7/12] rig URDF visualization (robot_state_publisher)"
+sleep 1
+
+# ── 8. RViz ──────────────────────────────────────────────────────────────────
+# LD_PRELOAD forces the system libpthread over snap's copy (avoids GLIBC_PRIVATE error).
+# ~/ros2_ws is sourced here too (not just for the rig_urdf step) because RViz is the
+# process that actually resolves package://urdf_estrutura_ondas/meshes/... STL paths for
+# the RobotModel display — without it those mesh lookups fail even though robot_state_
+# publisher itself is running fine.
 tmux new-window -t "$SESSION" -n "rviz" \
-  "bash -c '${PREAMBLE}; export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libpthread.so.0:/usr/lib/x86_64-linux-gnu/libc.so.6; echo \"[rviz] Starting...\"; ros2 run rviz2 rviz2 --ros-args -p use_sim_time:=true; exec bash'"
-echo " [7/11] rviz2"
+  "bash -c '${PREAMBLE}; source ~/ros2_ws/install/setup.bash; export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libpthread.so.0:/usr/lib/x86_64-linux-gnu/libc.so.6; echo \"[rviz] Starting...\"; ros2 run rviz2 rviz2 --ros-args -p use_sim_time:=true; exec bash'"
+echo " [8/12] rviz2"
 sleep 2
 
-# ── 8. Stereo rectifier ───────────────────────────────────────────────────────
+# ── 9. Stereo rectifier ───────────────────────────────────────────────────────
 tmux new-window -t "$SESSION" -n "rectify" \
   "bash -c '${PREAMBLE}; echo \"[rectify] Starting...\"; python3 Nodes/ros2_stereo_rectifier.py --ros-args -p use_sim_time:=true; exec bash'"
-echo " [8/11] stereo rectifier"
+echo " [9/12] stereo rectifier"
 sleep 2
 
-# ── 9. HITNet disparity ───────────────────────────────────────────────────────
-tmux new-window -t "$SESSION" -n "hitnet" \
-  "bash -c '${PREAMBLE}; echo \"[hitnet] Starting...\"; python3 Nodes/ros2_hitnet_disparity.py --ros-args -p use_sim_time:=true; exec bash'"
-echo " [9/11] HITNet disparity"
+# ── 10. WAFT-Stereo disparity ──────────────────────────────────────────────────
+tmux new-window -t "$SESSION" -n "waft" \
+  "bash -c '${PREAMBLE}; echo \"[waft] Starting...\"; python3 Nodes/ros2_waft_disparity.py --ros-args -p use_sim_time:=true -p config_file:=WAFT-Stereo/configs/SynLarge/DAv2S-4.yaml -p ckpt:=WAFT-Stereo/ckpts/SynLarge/DAv2S-4.pth; exec bash'"
+echo " [10/12] WAFT-Stereo disparity"
 sleep 2
 
-# ── 10. Point cloud ────────────────────────────────────────────────────────────
+# ── 11. Point cloud ────────────────────────────────────────────────────────────
 tmux new-window -t "$SESSION" -n "pointcloud" \
   "bash -c '${PREAMBLE}; echo \"[pointcloud] Starting...\"; python3 Nodes/ros2_pointcloud_node.py --ros-args -p use_sim_time:=true; exec bash'"
-echo " [10/11] point cloud"
+echo " [11/12] point cloud"
 
-# ── 11. Altimeter publisher (sensor_msgs/Range + static TF frames) ────────────
+# ── 12. Altimeter publisher (sensor_msgs/Range + static TF frames) ────────────
 tmux new-window -t "$SESSION" -n "altimeters" \
   "bash -c '${PREAMBLE}; echo \"[altimeters] Starting...\"; python3 Nodes/ros2_altimeter_publisher.py --ros-args -p use_sim_time:=true; exec bash'"
-echo " [11/11] altimeter publisher"
+echo " [12/12] altimeter publisher"
 
 # Select the bag window on attach (most useful to watch for clock ticking)
 tmux select-window -t "$SESSION:bag"

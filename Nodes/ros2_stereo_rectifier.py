@@ -17,12 +17,12 @@ def camera_info_to_K_D(info: CameraInfo):
     return K, D
 
 
-def build_rect_info(P1, P2, Q, target_wh) -> CameraInfo:
+def build_rect_info(P1, P2, Q, wh) -> CameraInfo:
     """Constructs a standard-compliant ROS 2 CameraInfo message."""
     msg = CameraInfo()
     msg.header.frame_id = 'camera_left_rect'
-    msg.width  = target_wh[0]
-    msg.height = target_wh[1]
+    msg.width  = wh[0]
+    msg.height = wh[1]
     msg.k = P1[:3, :3].flatten().tolist()
     msg.p = P1.flatten().tolist()
     msg.r = [1., 0., 0., 0., 1., 0., 0., 0., 1.]
@@ -43,14 +43,25 @@ class RectifyNode(Node):
         self.declare_parameter('left_rect_topic',   '/stereo/left/image_rect')
         self.declare_parameter('right_rect_topic',  '/stereo/right/image_rect')
         self.declare_parameter('rect_info_topic',   '/stereo/camera_info_rect')
-        self.declare_parameter('target_width',  320)
-        self.declare_parameter('target_height', 240)
         self.declare_parameter('sync_slop',     0.05)
         # Watchdog: if no frame arrives within this many seconds, reset the sync
         self.declare_parameter('watchdog_timeout', 3.0)
+        # Rectified output resolution = native camera resolution * output_scale (e.g.
+        # 0.25 = quarter). This is the *only* downscale baked into the pipeline
+        # upstream of every disparity backend — each backend still independently
+        # controls its own further working resolution on top of whatever this
+        # publishes (see ros2_waft_disparity.py's input_width/input_height/
+        # scale_factor), and every consumer reads the actual resolution from
+        # CameraInfo/image dimensions rather than assuming a fixed size, so this is
+        # safe to change without touching any other node. 1.0 reproduces the old
+        # native-resolution-always behaviour. Done via stereoRectify's newImageSize +
+        # matching initUndistortRectifyMap size, so undistort+rectify+downscale
+        # happens in a single remap pass (no separate full-res-then-resize step).
+        self.declare_parameter('output_scale', 0.25)
 
         p = self.get_parameter
-        self._target_wh  = (p('target_width').value, p('target_height').value)
+        self._native_wh  = None   # raw camera (K/D) resolution, set once CameraInfo arrives
+        self._output_wh  = None   # actual published resolution = native * output_scale
         self._sync_slop  = p('sync_slop').value
         self._watchdog_t = p('watchdog_timeout').value
 
@@ -100,7 +111,7 @@ class RectifyNode(Node):
         self._watchdog = self.create_timer(self._watchdog_t, self._cb_watchdog)
 
         self.get_logger().info(
-            f'Rectify Node ready. Target {self._target_wh[0]}x{self._target_wh[1]}. '
+            f'Rectify Node ready. output_scale={p("output_scale").value}. '
             f'Watchdog: {self._watchdog_t}s. Waiting for CameraInfo...'
         )
 
@@ -162,27 +173,36 @@ class RectifyNode(Node):
 
         il, ir = self._info_left, self._info_right
         W_raw, H_raw = il.width, il.height
-        W_t, H_t = self._target_wh
+        self._native_wh = (W_raw, H_raw)
 
-        self.get_logger().info(f'Intrinsics: {W_raw}x{H_raw} → {W_t}x{H_t}')
+        scale = self.get_parameter('output_scale').value
+        W_out = max(1, int(round(W_raw * scale)))
+        H_out = max(1, int(round(H_raw * scale)))
+        self._output_wh = (W_out, H_out)
+
+        self.get_logger().info(
+            f'Intrinsics: {W_raw}x{H_raw} native, rectifying to {W_out}x{H_out} '
+            f'(output_scale={scale})'
+        )
 
         K_l, D_l = camera_info_to_K_D(il)
         K_r, D_r = camera_info_to_K_D(ir)
 
-        sx, sy = W_t / W_raw, H_t / H_raw
-        K_ls = K_l.copy(); K_ls[0, :] *= sx; K_ls[1, :] *= sy
-        K_rs = K_r.copy(); K_rs[0, :] *= sx; K_rs[1, :] *= sy
-
+        # newImageSize=(W_out, H_out): P1/P2/Q come out scaled for the smaller output
+        # directly, and initUndistortRectifyMap below is built with that same size, so
+        # undistort+rectify+downscale happens in one remap pass per image instead of
+        # rectifying at native res and resizing separately afterward.
         R1, R2, P1, P2, Q, _, _ = cv2.stereoRectify(
-            K_ls, D_l, K_rs, D_r,
-            (W_t, H_t), self.R_stereo, self.T_stereo,
+            K_l, D_l, K_r, D_r,
+            (W_raw, H_raw), self.R_stereo, self.T_stereo,
             flags=cv2.CALIB_ZERO_DISPARITY, alpha=0,
+            newImageSize=(W_out, H_out),
         )
 
-        self._map_lx, self._map_ly = cv2.initUndistortRectifyMap(K_ls, D_l, R1, P1, (W_t, H_t), cv2.CV_32FC1)
-        self._map_rx, self._map_ry = cv2.initUndistortRectifyMap(K_rs, D_r, R2, P2, (W_t, H_t), cv2.CV_32FC1)
+        self._map_lx, self._map_ly = cv2.initUndistortRectifyMap(K_l, D_l, R1, P1, (W_out, H_out), cv2.CV_32FC1)
+        self._map_rx, self._map_ry = cv2.initUndistortRectifyMap(K_r, D_r, R2, P2, (W_out, H_out), cv2.CV_32FC1)
 
-        self._rect_info_msg = build_rect_info(P1, P2, Q, (W_t, H_t))
+        self._rect_info_msg = build_rect_info(P1, P2, Q, (W_out, H_out))
         self._maps_ok = True
 
         self.get_logger().info(f'Rectification maps ready. P1_fx={P1[0,0]:.2f}')
@@ -209,10 +229,6 @@ class RectifyNode(Node):
 
         left_raw  = self._bridge.compressed_imgmsg_to_cv2(left_msg,  desired_encoding='bgr8')
         right_raw = self._bridge.compressed_imgmsg_to_cv2(right_msg, desired_encoding='bgr8')
-
-        W_t, H_t = self._target_wh
-        left_raw  = cv2.resize(left_raw,  (W_t, H_t), interpolation=cv2.INTER_LINEAR)
-        right_raw = cv2.resize(right_raw, (W_t, H_t), interpolation=cv2.INTER_LINEAR)
 
         left_rect  = cv2.remap(left_raw,  self._map_lx, self._map_ly, cv2.INTER_LINEAR)
         right_rect = cv2.remap(right_raw, self._map_rx, self._map_ry, cv2.INTER_LINEAR)

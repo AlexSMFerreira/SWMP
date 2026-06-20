@@ -20,6 +20,7 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from hitnet import HitNet, ModelType, CameraConfig
+from stereo_common import rescale_disparity
 
 
 class HitNetDisparityNode(Node):
@@ -34,7 +35,7 @@ class HitNetDisparityNode(Node):
         self.declare_parameter('model_path',         'models/eth3d/saved_model_240x320/model_float32.onnx')
         self.declare_parameter('max_distance',       100.0)
         self.declare_parameter('sky_crop_pct',       0.40)   # Fallback if Hough fails
-        self.declare_parameter('horizon_margin_pct', 0.02)   # Downward margin below detected horizon
+        self.declare_parameter('horizon_margin_pct', 0.01)   # Downward margin below detected horizon
         self.declare_parameter('debug_horizon',      True)
 
         p = self.get_parameter
@@ -290,8 +291,14 @@ class HitNetDisparityNode(Node):
         # 3. Build sky mask from the nudged horizon
         sky_mask = self._make_sky_mask(left_cv.shape, horizon_masked)
 
-        # 3. Run disparity inference
+        # 3. Run disparity inference. The HitNet wrapper internally resizes left_cv/
+        # right_cv down to the ONNX model's fixed input shape (e.g. 320x240 for the
+        # default eth3d model) and returns disparity at THAT resolution, not at
+        # left_cv's — rescale it back up to the full rectified resolution (scaling
+        # pixel values by the same ratio) before masking/publishing, so it matches
+        # left_cv's shape for ros2_pointcloud_node.py.
         disparity_map = self.depth_estimator(left_cv, right_cv)
+        disparity_map = rescale_disparity(disparity_map, (left_cv.shape[1], left_cv.shape[0]))
 
         # 4. Zero out sky
         disparity_map[sky_mask] = 0.0

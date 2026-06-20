@@ -6,6 +6,11 @@ Deep-learning stereo backend using the Princeton Vision RAFT-Stereo model
 (6 GB VRAM) via --mixed_precision + --corr_implementation alt and a reduced
 iteration count for sub-100 ms latency.
 
+The rectifier (ros2_stereo_rectifier.py) publishes at native camera resolution;
+input_width/input_height below downscale to this node's own working resolution
+(default 320x240, matching the rectifier's old hardcoded output) and the computed
+disparity is rescaled back up to native resolution before publishing.
+
 Drop-in replacement for ros2_hitnet_disparity.py: same input topics, same
 32FC1 disparity output, same horizon-based sky mask, same debug overlay.
 
@@ -80,9 +85,12 @@ class RAFTStereoDisparityNode(Node):
         self.declare_parameter('n_downsample',        3)
         self.declare_parameter('n_gru_layers',        2)
         self.declare_parameter('slow_fast_gru',       True)
-        # Optional input downscale (set both > 0 to enable, e.g. 1280 × 720)
-        self.declare_parameter('input_width',         -1)
-        self.declare_parameter('input_height',        -1)
+        # The rectifier publishes at native camera resolution; downscale here to a
+        # working resolution for RAFT-Stereo (the dominant cost) and rescale the
+        # disparity back up afterward. -1/-1 disables this and runs at native res
+        # (likely too slow/VRAM-heavy on a 6 GB card at full camera resolution).
+        self.declare_parameter('input_width',         320)
+        self.declare_parameter('input_height',        240)
         self.declare_parameter('max_distance',        30.0)
         self.declare_parameter('sky_crop_pct',        0.40)
         self.declare_parameter('horizon_margin_pct',  0.03)

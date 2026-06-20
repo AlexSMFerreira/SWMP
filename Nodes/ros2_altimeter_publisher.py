@@ -4,20 +4,20 @@ AltimeterPublisherNode — converts raw altimeter messages to sensor_msgs/Range 
 and broadcasts static TF frames for each altimeter relative to base_link.
 
 ── Inputs (types confirmed from bag 2026_LEIXOES_LOGS/airship_20260528_115149) ──────────
-  /airship/left/altimeter/height       geometry_msgs/PoseStamped   AGL height in position.y,
-                                                                    RAW UNIT IS CENTIMETRES —
-                                                                    converted to metres below.
-                                                                    Cross-checked against
-                                                                    /episea/nav/water_level
-                                                                    (see CLAUDE.md): treating
-                                                                    raw value as metres gives
-                                                                    a ~50-90 m AGL that is
-                                                                    inconsistent with the
-                                                                    near-zero nav_alt-water_level
-                                                                    AGL signal; treating it as
-                                                                    centimetres (sub-metre AGL)
-                                                                    is consistent.
-  /airship/right/altimeter/height      geometry_msgs/PoseStamped   same as left — centimetres.
+  /airship/left/altimeter/height       geometry_msgs/PoseStamped   AGL height (metres) is
+                                                                    position.x. position.y is
+                                                                    a magnitude/quality value,
+                                                                    not height (confirmed by
+                                                                    José Carlos Fernandes,
+                                                                    INESC TEC, and by position.x
+                                                                    matching the Lightware
+                                                                    unit's range almost exactly
+                                                                    on the same bag — see
+                                                                    CLAUDE.md). Supersedes the
+                                                                    earlier position.y*0.01
+                                                                    "centimetres" reading, which
+                                                                    was reading the wrong field.
+  /airship/right/altimeter/height      geometry_msgs/PoseStamped   same as left.
   /lightware_altimeter/left/altimeter  geometry_msgs/PointStamped  slant range in point.z (m);
                                                                     -1.0 means "no return"
 
@@ -28,9 +28,14 @@ and broadcasts static TF frames for each altimeter relative to base_link.
 
 ── TF frames (static, children of base_link, sensor +X axis pointing downward — that is
    the axis sensor_msgs/Range measures along, per REP 117) ──────────────────────────────
-  altimeter_left        y = -altimeter_baseline_y / 2  (placeholder — measure physically)
-  altimeter_right       y = +altimeter_baseline_y / 2  (placeholder — measure physically)
-  altimeter_lightware   at origin                       (placeholder — measure physically)
+  Translations are real, measured offsets from the rig CAD
+  (urdf_estrutura_ondas/urdf/estrutura_ondas.urdf.xacro, links alt_left/alt_right/alt_lidar
+  — alt_lidar is the Lightware unit), not placeholders. The rotation (+90° about Y) is kept
+  as separately verified via tf2_echo — the xacro's own rpy for these links is a mesh-display
+  orientation, not the sensor's measurement axis.
+  altimeter_left        (0.077987,  0.46953, -0.10252)
+  altimeter_right       (0.077131, -0.43967, -0.10242)   baseline_y ≈ 0.9092 m measured
+  altimeter_lightware   (0.099346, -0.20444, -0.076184)
 
 In RViz: add a Range display, set the topic, set Fixed Frame to "map". The cone shows the
 measured distance along the sensor's downward axis, moving with base_link via the TF tree.
@@ -70,34 +75,27 @@ class AltimeterPublisherNode(Node):
     def __init__(self):
         super().__init__('altimeter_publisher_node')
 
-        # Lateral distance (m) between left and right altimeters — needs physical measurement.
-        self.declare_parameter('altimeter_baseline_y', 1.0)
-        # X offset of altimeters from base_link origin (forward positive).
-        self.declare_parameter('altimeter_offset_x', 0.0)
-        # Z offset of altimeters from base_link origin.
-        self.declare_parameter('altimeter_offset_z', 0.0)
-        # X/Y/Z offset for the Lightware unit.
-        self.declare_parameter('lightware_offset_x', 0.0)
-        self.declare_parameter('lightware_offset_y', 0.0)
-        self.declare_parameter('lightware_offset_z', 0.0)
+        # Real measured offsets (m) from base_link, taken from the physical rig CAD
+        # (urdf_estrutura_ondas/urdf/estrutura_ondas.urdf.xacro, links alt_left/alt_right/
+        # alt_lidar — alt_lidar is the Lightware unit). Translation only: the rig's mesh-
+        # display rpy for these links does not represent the sensor's measurement axis, so
+        # the rotation below (REP 117, +90° about Y) is kept as separately verified via
+        # tf2_echo, not taken from the xacro.
+        self.declare_parameter('altimeter_left_offset', [0.077987, 0.46953, -0.10252])
+        self.declare_parameter('altimeter_right_offset', [0.077131, -0.43967, -0.10242])
+        self.declare_parameter('lightware_offset', [0.099346, -0.20444, -0.076184])
 
         p = self.get_parameter
-        baseline_y = p('altimeter_baseline_y').value
-        off_x = p('altimeter_offset_x').value
-        off_z = p('altimeter_offset_z').value
-        lw_x = p('lightware_offset_x').value
-        lw_y = p('lightware_offset_y').value
-        lw_z = p('lightware_offset_z').value
+        left_x, left_y, left_z = p('altimeter_left_offset').value
+        right_x, right_y, right_z = p('altimeter_right_offset').value
+        lw_x, lw_y, lw_z = p('lightware_offset').value
 
         # Static TF: one broadcaster, three frames.
         self._static_tf = StaticTransformBroadcaster(self)
         self._static_tf.sendTransform([
-            _downward_transform('base_link', 'altimeter_left',
-                                off_x, -baseline_y / 2.0, off_z),
-            _downward_transform('base_link', 'altimeter_right',
-                                off_x, +baseline_y / 2.0, off_z),
-            _downward_transform('base_link', 'altimeter_lightware',
-                                lw_x, lw_y, lw_z),
+            _downward_transform('base_link', 'altimeter_left', left_x, left_y, left_z),
+            _downward_transform('base_link', 'altimeter_right', right_x, right_y, right_z),
+            _downward_transform('base_link', 'altimeter_lightware', lw_x, lw_y, lw_z),
         ])
 
         qos = QoSProfile(
@@ -120,7 +118,7 @@ class AltimeterPublisherNode(Node):
 
         self.get_logger().info(
             f'AltimeterPublisher ready. '
-            f'baseline_y={baseline_y} m (placeholder — measure physically). '
+            f'baseline_y={left_y - right_y:.4f} m (measured, from urdf_estrutura_ondas). '
             f'TF frames: altimeter_left, altimeter_right, altimeter_lightware → base_link.'
         )
 
@@ -141,12 +139,12 @@ class AltimeterPublisherNode(Node):
 
     def _cb_left(self, msg: PoseStamped):
         r = self._base_range('altimeter_left', msg.header.stamp)
-        r.range = float(msg.pose.position.y) * 0.01   # raw value is centimetres, not metres
+        r.range = float(msg.pose.position.x)   # AGL in metres; position.y is a magnitude value
         self._pub_left.publish(r)
 
     def _cb_right(self, msg: PoseStamped):
         r = self._base_range('altimeter_right', msg.header.stamp)
-        r.range = float(msg.pose.position.y) * 0.01   # raw value is centimetres, not metres
+        r.range = float(msg.pose.position.x)   # AGL in metres; position.y is a magnitude value
         self._pub_right.publish(r)
 
     def _cb_lw(self, msg: PointStamped):

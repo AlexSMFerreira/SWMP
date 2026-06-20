@@ -28,6 +28,7 @@ import time
 from stereo_common import (
     HorizonMasker, extract_baseline_fx, to_float_disparity,
     make_disparity_msg, colorize_disparity, make_color_msg,
+    downscale_pair, rescale_disparity,
 )
 
 
@@ -51,6 +52,13 @@ class SBMDisparityNode(Node):
         self.declare_parameter('speckle_window_size', 200)  # remove larger noise blobs
         self.declare_parameter('speckle_range',      32)
         self.declare_parameter('pre_filter_cap',     31)
+
+        # The rectifier now publishes at native camera resolution; downscale here to
+        # a working resolution for the matcher (it's by far the dominant cost, and
+        # num_disparities above was tuned for ~320x240) and rescale the disparity
+        # back up afterward. -1/-1 disables this and runs StereoBM at native res.
+        self.declare_parameter('input_width',        320)
+        self.declare_parameter('input_height',       240)
 
         self.declare_parameter('sky_crop_pct',       0.40)
         self.declare_parameter('horizon_margin_pct', 0.03)
@@ -105,11 +113,19 @@ class SBMDisparityNode(Node):
 
         left_bgr  = self._bridge.imgmsg_to_cv2(left_msg,  desired_encoding='bgr8')
         right_bgr = self._bridge.imgmsg_to_cv2(right_msg, desired_encoding='bgr8')
-        left_gray  = cv2.cvtColor(left_bgr,  cv2.COLOR_BGR2GRAY)
-        right_gray = cv2.cvtColor(right_bgr, cv2.COLOR_BGR2GRAY)
+        full_w, full_h = left_bgr.shape[1], left_bgr.shape[0]
+
+        inp_w = self.get_parameter('input_width').value
+        inp_h = self.get_parameter('input_height').value
+        proc_left, proc_right = downscale_pair(left_bgr, right_bgr, inp_w, inp_h)
+        scale_x = full_w / proc_left.shape[1]
+
+        left_gray  = cv2.cvtColor(proc_left,  cv2.COLOR_BGR2GRAY)
+        right_gray = cv2.cvtColor(proc_right, cv2.COLOR_BGR2GRAY)
 
         raw = self._matcher.compute(left_gray, right_gray)   # CV_16S, x16
         disp = to_float_disparity(raw, self._min_disp)
+        disp = rescale_disparity(disp, (full_w, full_h))
 
         sky_mask, source = self._masker.compute_mask(left_bgr)
         disp[sky_mask] = 0.0
@@ -118,7 +134,7 @@ class SBMDisparityNode(Node):
 
         self._pub_disp.publish(make_disparity_msg(self._bridge, disp, left_msg.header))
 
-        color = colorize_disparity(disp, self._num_disp)
+        color = colorize_disparity(disp, self._num_disp * scale_x)
         color[sky_mask] = 0
         color_msg = make_color_msg(color, left_msg.header)
         if color_msg is not None:

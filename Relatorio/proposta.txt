@@ -1,0 +1,46 @@
+Proposta de Estágio
+
+Descrição da proposta (contexto, objetivos, plano de trabalho, etc.)
+
+O presente estágio insere-se no âmbito dos projetos SEAWINGS e AIRSHIP, que visam o desenvolvimento de plataformas aéreas inovadoras para operação sobre ambientes marítimos. Um dos desafios centrais destes projetos é a perceção precisa e em tempo real da superfície do mar, em particular da ocorrência de ondas, de forma a garantir condições ótimas e seguras de voo.
+
+As ondas oceânicas constituem um fenómeno dinâmico e periódico, caracterizado principalmente pela sua amplitude, direção e frequência. A correta estimação destes parâmetros, bem como a possibilidade de prever a próxima ocorrência de ondas, pode contribuir significativamente para a melhoria dos sistemas de controlo e planeamento de voo das plataformas aéreas em desenvolvimento.
+
+Neste contexto, o estágio tem como objetivo principal o estudo, desenvolvimento e validação de abordagens de perceção e modelização de ondas oceânicas, baseadas em fusão multissensorial. Serão explorados dados provenientes de câmaras stereo e/ou altímetros embarcados, considerando diferentes configurações sensoriais previstas nos projetos (sensores localizados nas asas ou ao longo da fuselagem).
+
+O trabalho incluirá o estudo do estado da arte em modelização de ondas e perceção multissensorial, o desenvolvimento de algoritmos para a estimação da geometria da superfície do mar e a extração de parâmetros periódicos relevantes. Com base nestes parâmetros, será investigada a viabilidade de modelos de previsão da próxima ocorrência de ondas, recorrendo a métodos determinísticos, estatísticos e/ou baseados em aprendizagem automática.
+
+
+Enquadramento temporal esperado (datas de início e fim)
+
+O estágio terá uma duração total prevista de 6 meses, com início e fim a definir de acordo com o calendário académico e a disponibilidade do estudante.
+
+O plano de trabalho será organizado nas seguintes fases:
+
+1. Fase 1 – Revisão do estado da arte (Mês 1)
+
+Estudo de modelos de ondas oceânicas, técnicas de perceção visual e altimétrica e métodos de fusão multissensorial.
+
+Entregável: relatório de revisão bibliográfica.
+
+2. Fase 2 – Análise e caracterização sensorial (Mês 2)
+
+Estudo das configurações de sensores disponíveis (câmaras stereo e altímetros) e análise das suas limitações e incertezas.
+
+Entregável: relatório técnico de caracterização sensorial.
+
+3. Fase 3 – Desenvolvimento dos algoritmos de estimação (Meses 3 e 4)
+
+Implementação de métodos de estimação da superfície do mar e fusão multissensorial para obtenção de parâmetros das ondas.
+
+Entregável: protótipo funcional dos algoritmos desenvolvidos.
+
+4. Fase 4 – Modelização e previsão da ocorrência de ondas (Mês 5)
+
+Desenvolvimento e teste de modelos de previsão baseados no carácter periódico das ondas.
+
+Entregável: avaliação quantitativa dos modelos de previsão.
+
+5. Fase 5 – Validação e documentação final (Mês 6)
+
+Análise dos resultados, validação experime

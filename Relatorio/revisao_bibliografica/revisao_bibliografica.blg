@@ -1,0 +1,16 @@
+[0] Config.pm:307> INFO - This is Biber 2.17
+[0] Config.pm:310> INFO - Logfile is 'revisao_bibliografica.blg'
+[102] biber:340> INFO - === sáb abr  4, 2026, 20:22:25
+[126] Biber.pm:418> INFO - Reading 'revisao_bibliografica.bcf'
+[276] Biber.pm:972> INFO - Found 17 citekeys in bib section 0
+[285] Biber.pm:4383> INFO - Processing section 0
+[291] Biber.pm:4574> INFO - Looking for bibtex file 'bibliography.bib' for section 0
+[293] bibtex.pm:1713> INFO - LaTeX decoding ...
+[327] bibtex.pm:1518> INFO - Found BibTeX data source 'bibliography.bib'
+[466] UCollate.pm:68> INFO - Overriding locale 'pt-PT' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[466] UCollate.pm:68> INFO - Overriding locale 'pt-PT' defaults 'level = 4' with 'level = 2'
+[466] UCollate.pm:68> INFO - Overriding locale 'pt-PT' defaults 'variable = shifted' with 'variable = non-ignorable'
+[466] Biber.pm:4203> INFO - Sorting list 'cms/global//global/global' of type 'entry' with template 'cms' and locale 'pt-PT'
+[466] Biber.pm:4209> INFO - No sort tailoring available for locale 'pt-PT'
+[484] bbl.pm:654> INFO - Writing 'revisao_bibliografica.bbl' with encoding 'UTF-8'
+[497] bbl.pm:757> INFO - Output to revisao_bibliografica.bbl

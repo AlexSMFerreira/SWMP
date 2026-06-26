@@ -34,7 +34,6 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 import message_filters
 from sensor_msgs.msg import CameraInfo, Image, CompressedImage
-from std_msgs.msg import Float64
 from cv_bridge import CvBridge
 
 import cv2
@@ -117,7 +116,6 @@ class RAFTStereoDisparityNode(Node):
         self._pub_disp_raw   = self.create_publisher(Image,           p('disp_raw_topic').value,   pub_qos)
         self._pub_disp_color = self.create_publisher(CompressedImage, p('disp_color_topic').value,  vis_qos)
         self._pub_debug      = self.create_publisher(CompressedImage, '/stereo/debug/horizon/compressed', vis_qos)
-        self._pub_roll       = self.create_publisher(Float64,         '/stereo/horizon_roll',       vis_qos)
 
         self._sub_info = self.create_subscription(
             CameraInfo, p('rect_info_topic').value, self._cb_camera_info, pub_qos
@@ -288,37 +286,28 @@ class RAFTStereoDisparityNode(Node):
         # 1. Detect horizon + build sky mask
         sky_mask, source = self._horizon.compute_mask(left_cv)
 
-        # 2. Publish roll angle derived from horizon direction
-        if self._horizon._cur_raw is not None:
-            dx, dy = float(self._horizon._cur_raw[1][0]), float(self._horizon._cur_raw[1][1])
-            if dx < 0:
-                dx, dy = -dx, -dy
-            roll_msg      = Float64()
-            roll_msg.data = float(np.arctan2(dy, dx))
-            self._pub_roll.publish(roll_msg)
-
-        # 3. Run disparity inference
+        # 2. Run disparity inference
         disparity_map = self._infer_disparity(left_cv, right_cv)
 
-        # 4. Zero out sky
+        # 3. Zero out sky
         disparity_map[sky_mask] = 0.0
 
         latency = (time.perf_counter() - t0) * 1000
 
-        # 5. Publish raw disparity (32FC1, pixels)
+        # 4. Publish raw disparity (32FC1, pixels)
         disp_msg        = self._bridge.cv2_to_imgmsg(disparity_map, encoding='32FC1')
         disp_msg.header = left_msg.header
         disp_msg.step   = disparity_map.shape[1] * 4
         self._pub_disp_raw.publish(disp_msg)
 
-        # 6. Publish colourised preview
+        # 5. Publish colourised preview
         color_img = _colorize(disparity_map)
         color_img[sky_mask] = 0
         color_msg = make_color_msg(color_img, left_msg.header)
         if color_msg:
             self._pub_disp_color.publish(color_msg)
 
-        # 7. Publish horizon debug overlay
+        # 6. Publish horizon debug overlay
         if self.get_parameter('debug_horizon').value:
             dbg = self._horizon.make_debug_image(left_cv, source)
             if dbg is not None:

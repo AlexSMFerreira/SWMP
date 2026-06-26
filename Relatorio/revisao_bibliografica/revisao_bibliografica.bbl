@@ -1,0 +1,891 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.2 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{cms/global//global/global}
+    \entry{s22197532}{article}{}
+      \name{author}{6}{}{%
+        {{un=0,uniquepart=base,hash=b966516662d3789f6febc4fc6dd16b57}{%
+           family={Dai},
+           familyi={D\bibinitperiod},
+           given={Zhuoqun},
+           giveni={Z\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=d7bb0c7775d99089339915325d0e57ec}{%
+           family={Wolf},
+           familyi={W\bibinitperiod},
+           given={Alexander},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=0bf1238dc133bfc1f2eae0b9a799d5b8}{%
+           family={Ley},
+           familyi={L\bibinitperiod},
+           given={Peer-Phillip},
+           giveni={P\bibinithyphendelim P\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=8630490410898e5c60ff856a515c23d1}{%
+           family={Glück},
+           familyi={G\bibinitperiod},
+           given={Tobias},
+           giveni={T\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=72953d56b0146100642d1d2efc3c3c19}{%
+           family={Sundermeier},
+           familyi={S\bibinitperiod},
+           given={Max\bibnamedelima Caspar},
+           giveni={M\bibinitperiod\bibinitdelim C\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=14a14651d1e0bba94420df8ce989abde}{%
+           family={Lachmayer},
+           familyi={L\bibinitperiod},
+           given={Roland},
+           giveni={R\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{f2e48fb9a348a3b56be12e77f1c1b66f}
+      \strng{fullhash}{3260b7eb2463263d5744224fc273e8f2}
+      \strng{bibnamehash}{3260b7eb2463263d5744224fc273e8f2}
+      \strng{authorbibnamehash}{3260b7eb2463263d5744224fc273e8f2}
+      \strng{authornamehash}{f2e48fb9a348a3b56be12e77f1c1b66f}
+      \strng{authorfullhash}{3260b7eb2463263d5744224fc273e8f2}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{Light detection and ranging (LiDAR) are fundamental sensors that help driving tasks for autonomous driving at various levels. Commercially available systems come in different specialized design schemes and involve plenty of specifications. In the literature, there are insufficient representations of the technical requirements for LiDAR systems in the automotive context, such as range, detection quality, resolving power, field of view, and eye safety. For this reason, the requirements above require to be derived based on ADAS functions. The requirements for various key LiDAR metrics, including detection range, field of view, angular resolution, and laser safety, are analyzed in this paper. LiDAR systems are available with various radiation patterns that significantly impact on detection range. Therefore, the detection range under various radiation patterns is firstly investigated in this paper. Based on ADAS functions, the required detection range and field of view for LiDAR systems are examined, taking into account various travel speeds to avoid collision and the coverage of the entire lane width. Furthermore, the angular resolution limits are obtained utilizing the KITTI dataset and exemplary 3D detection algorithms. Finally, the maximum detection ranges for the different radiation patterns are compared under the consideration of derived requirements and laser safety.}
+      \field{issn}{1424-8220}
+      \field{journaltitle}{Sensors}
+      \field{number}{19}
+      \field{title}{Requirements for Automotive LiDAR Systems}
+      \field{volume}{22}
+      \field{year}{2022}
+      \verb{doi}
+      \verb 10.3390/s22197532
+      \endverb
+      \verb{urlraw}
+      \verb https://www.mdpi.com/1424-8220/22/19/7532
+      \endverb
+      \verb{url}
+      \verb https://www.mdpi.com/1424-8220/22/19/7532
+      \endverb
+    \endentry
+    \entry{dean1991water}{book}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=76a9406d7e94070470ff2881224e7a1e}{%
+           family={Dean},
+           familyi={D\bibinitperiod},
+           given={Robert\bibnamedelima G.},
+           giveni={R\bibinitperiod\bibinitdelim G\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=72c1aedf63cea977ed267518b2283511}{%
+           family={Dalrymple},
+           familyi={D\bibinitperiod},
+           given={Robert\bibnamedelima A.},
+           giveni={R\bibinitperiod\bibinitdelim A\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {World Scientific}%
+      }
+      \strng{namehash}{1fba330098e133dfb1b3b6247cb6f7e1}
+      \strng{fullhash}{1fba330098e133dfb1b3b6247cb6f7e1}
+      \strng{bibnamehash}{1fba330098e133dfb1b3b6247cb6f7e1}
+      \strng{authorbibnamehash}{1fba330098e133dfb1b3b6247cb6f7e1}
+      \strng{authornamehash}{1fba330098e133dfb1b3b6247cb6f7e1}
+      \strng{authorfullhash}{1fba330098e133dfb1b3b6247cb6f7e1}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{series}{Advanced Series on Ocean Engineering}
+      \field{title}{Water Wave Mechanics for Engineers and Scientists}
+      \field{volume}{2}
+      \field{year}{1991}
+      \verb{doi}
+      \verb 10.1142/1232
+      \endverb
+    \endentry
+    \entry{10683889}{article}{}
+      \name{author}{5}{}{%
+        {{un=0,uniquepart=base,hash=bdcde1ae39604cf4133da69eee243465}{%
+           family={Harlow},
+           familyi={H\bibinitperiod},
+           given={Kyle},
+           giveni={K\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=7ef821dadcf951e4e50ee7275b2f20fd}{%
+           family={Jang},
+           familyi={J\bibinitperiod},
+           given={Hyesu},
+           giveni={H\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=b2c352c24cb7305c1e2d9b232a6fc453}{%
+           family={Barfoot},
+           familyi={B\bibinitperiod},
+           given={Timothy\bibnamedelima D.},
+           giveni={T\bibinitperiod\bibinitdelim D\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=c3242678326dc788084c2ca12ce8b526}{%
+           family={Kim},
+           familyi={K\bibinitperiod},
+           given={Ayoung},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=4c2db6d696666ecaec22d073deb3cb7d}{%
+           family={Heckman},
+           familyi={H\bibinitperiod},
+           given={Christoffer},
+           giveni={C\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{6c9cced81a9b29e883359f757f95e2ca}
+      \strng{fullhash}{b81d2a320de48b461b0d10ea9d5b3e75}
+      \strng{bibnamehash}{b81d2a320de48b461b0d10ea9d5b3e75}
+      \strng{authorbibnamehash}{b81d2a320de48b461b0d10ea9d5b3e75}
+      \strng{authornamehash}{6c9cced81a9b29e883359f757f95e2ca}
+      \strng{authorfullhash}{b81d2a320de48b461b0d10ea9d5b3e75}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{IEEE Transactions on Robotics}
+      \field{title}{A New Wave in Robotics: Survey on Recent MmWave Radar Applications in Robotics}
+      \field{volume}{40}
+      \field{year}{2024}
+      \field{pages}{4544\bibrangedash 4560}
+      \range{pages}{17}
+      \verb{doi}
+      \verb 10.1109/TRO.2024.3463504
+      \endverb
+      \keyw{Radar;Sensors;Robots;Robot sensing systems;Radar antennas;Laser radar;Radar cross-sections;Autonomous robots;millimeter wave radar;radar applications;state estimation}
+    \endentry
+    \entry{hasselmann1973measurements}{report}{}
+      \true{moreauthor}
+      \true{morelabelname}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=dbbe40cc7bf13d835fe06bfc924e881c}{%
+           family={Hasselmann},
+           familyi={H\bibinitperiod},
+           given={K.},
+           giveni={K\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{institution}{1}{%
+        {Deutsches Hydrographisches Institut}%
+      }
+      \list{location}{1}{%
+        {Hamburg}%
+      }
+      \strng{namehash}{7194007269062e9bbf7b8faefd7bbd77}
+      \strng{fullhash}{7194007269062e9bbf7b8faefd7bbd77}
+      \strng{bibnamehash}{7194007269062e9bbf7b8faefd7bbd77}
+      \strng{authorbibnamehash}{7194007269062e9bbf7b8faefd7bbd77}
+      \strng{authornamehash}{7194007269062e9bbf7b8faefd7bbd77}
+      \strng{authorfullhash}{7194007269062e9bbf7b8faefd7bbd77}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Measurements of wind-wave growth and swell decay during the {Joint North Sea Wave Project (JONSWAP)}}
+      \field{type}{techreport}
+      \field{year}{1973}
+    \endentry
+    \entry{rs9121261}{article}{}
+      \name{author}{3}{}{%
+        {{un=0,uniquepart=base,hash=80e81d2433ac49b3b396f34cabf0b151}{%
+           family={Huang},
+           familyi={H\bibinitperiod},
+           given={Weimin},
+           giveni={W\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=5b594b070bf768ab6eaecc6a23f1efb6}{%
+           family={Liu},
+           familyi={L\bibinitperiod},
+           given={Xinlong},
+           giveni={X\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=c6034dbb8f26f4b6a54315ee98ab5e34}{%
+           family={Gill},
+           familyi={G\bibinitperiod},
+           given={Eric\bibnamedelima W.},
+           giveni={E\bibinitperiod\bibinitdelim W\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{d95d2e379c628745bc5da05f1bc72bf1}
+      \strng{fullhash}{d95d2e379c628745bc5da05f1bc72bf1}
+      \strng{bibnamehash}{d95d2e379c628745bc5da05f1bc72bf1}
+      \strng{authorbibnamehash}{d95d2e379c628745bc5da05f1bc72bf1}
+      \strng{authornamehash}{d95d2e379c628745bc5da05f1bc72bf1}
+      \strng{authorfullhash}{d95d2e379c628745bc5da05f1bc72bf1}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{Ocean wind and wave parameters can be measured by in-situ sensors such as anemometers and buoys. Since the 1980s, X-band marine radar has evolved as one of the remote sensing instruments for such purposes since its sea surface images contain considerable wind and wave information. The maturity and accuracy of X-band marine radar wind and wave measurements have already enabled relevant commercial products to be used in real-world applications. The goal of this paper is to provide a comprehensive review of the state of the art algorithms for ocean wind and wave information extraction from X-band marine radar data. Wind measurements are mainly based on the dependence of radar image intensities on wind direction and speed. Wave parameters can be obtained from radar-derived wave spectra or radar image textures for non-coherent radar and from surface radial velocity for coherent radar. In this review, the principles of the methodologies are described, the performances are compared, and the pros and cons are discussed. Specifically, recent developments for wind and wave measurements are highlighted. These include the mitigation of rain effects on wind measurements and wave height estimation without external calibrations. Finally, remaining challenges and future trends are discussed.}
+      \field{issn}{2072-4292}
+      \field{journaltitle}{Remote Sensing}
+      \field{number}{12}
+      \field{title}{Ocean Wind and Wave Measurements Using X-Band Marine Radar: A Comprehensive Review}
+      \field{volume}{9}
+      \field{year}{2017}
+      \verb{doi}
+      \verb 10.3390/rs9121261
+      \endverb
+      \verb{urlraw}
+      \verb https://www.mdpi.com/2072-4292/9/12/1261
+      \endverb
+      \verb{url}
+      \verb https://www.mdpi.com/2072-4292/9/12/1261
+      \endverb
+    \endentry
+    \entry{li2025thermal}{article}{}
+      \name{author}{5}{}{%
+        {{un=0,uniquepart=base,hash=71c7898f749867b9c9815af5b2e34926}{%
+           family={Li},
+           familyi={L\bibinitperiod},
+           given={Deyu},
+           giveni={D\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=478f84e4d9637ddf0d3598e565d29dd6}{%
+           family={Xiao},
+           familyi={X\bibinitperiod},
+           given={Longfei},
+           giveni={L\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=920a75c2d371f90fffd1b0cc0ba1a66d}{%
+           family={Wei},
+           familyi={W\bibinitperiod},
+           given={Handi},
+           giveni={H\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=92e14a8c19eb5a0c7c199c85db74f106}{%
+           family={Li},
+           familyi={L\bibinitperiod},
+           given={Yan},
+           giveni={Y\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=faf92121fc7e79b30d5d54e1e14840f7}{%
+           family={Zhang},
+           familyi={Z\bibinitperiod},
+           given={Binghua},
+           giveni={B\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{72c53d8a2eee95b8b70d050700f8f13c}
+      \strng{fullhash}{7e5ced944ad5aaa97c9fe0b2da8d1cab}
+      \strng{bibnamehash}{7e5ced944ad5aaa97c9fe0b2da8d1cab}
+      \strng{authorbibnamehash}{7e5ced944ad5aaa97c9fe0b2da8d1cab}
+      \strng{authornamehash}{72c53d8a2eee95b8b70d050700f8f13c}
+      \strng{authorfullhash}{7e5ced944ad5aaa97c9fe0b2da8d1cab}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{IEEE Transactions on Instrumentation and Measurement}
+      \field{title}{A Noncontact Technique for Wave Measurement Based on Thermal Stereography and Deep Learning}
+      \field{volume}{74}
+      \field{year}{2025}
+      \field{pages}{1\bibrangedash 15}
+      \range{pages}{15}
+      \verb{doi}
+      \verb 10.1109/TIM.2025.3550243
+      \endverb
+      \keyw{Surface waves;Optical surface waves;Surface reconstruction;Photothermal effects;Sea measurements;Image reconstruction;Sea surface;Surface treatment;Cameras;Water;Deep learning;domain adaption;stereo matching;thermal stereography;wave surface}
+    \endentry
+    \entry{nowak2022weavenet}{article}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=fc440a000fb3e856a9e00978210081aa}{%
+           family={Nowak},
+           familyi={N\bibinitperiod},
+           given={Mariusz\bibnamedelima Karol},
+           giveni={M\bibinitperiod\bibinitdelim K\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{fc440a000fb3e856a9e00978210081aa}
+      \strng{fullhash}{fc440a000fb3e856a9e00978210081aa}
+      \strng{bibnamehash}{fc440a000fb3e856a9e00978210081aa}
+      \strng{authorbibnamehash}{fc440a000fb3e856a9e00978210081aa}
+      \strng{authornamehash}{fc440a000fb3e856a9e00978210081aa}
+      \strng{authorfullhash}{fc440a000fb3e856a9e00978210081aa}
+      \field{sortinit}{N}
+      \field{sortinithash}{22369a73d5f88983a108b63f07f37084}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Electronics}
+      \field{number}{14}
+      \field{title}{WeaveNet: Solution for Variable Input Sparsity Depth Completion}
+      \field{volume}{11}
+      \field{year}{2022}
+      \field{pages}{2222}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.3390/electronics11142222
+      \endverb
+    \endentry
+    \entry{11139524}{inproceedings}{}
+      \name{author}{4}{}{%
+        {{un=0,uniquepart=base,hash=136c94e0a1f07ec22becef4d2727fa01}{%
+           family={Pieper},
+           familyi={P\bibinitperiod},
+           given={Fynn},
+           giveni={F\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=4773e3a860be505b038242113be65e12}{%
+           family={Bogner},
+           familyi={B\bibinitperiod},
+           given={Mirjam},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=73303fd078c38ee469f0aeec2b8480fa}{%
+           family={Piotrowski},
+           familyi={P\bibinitperiod},
+           given={Janusz\bibnamedelima A.},
+           giveni={J\bibinitperiod\bibinitdelim A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=e5f566bf5a478b39cbf35d9cbc2c2e95}{%
+           family={Steidel},
+           familyi={S\bibinitperiod},
+           given={Matthias},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{db3ced165c9305367ed299b48d433857}
+      \strng{fullhash}{fb078409e765c6d691dcf4832bd059e7}
+      \strng{bibnamehash}{fb078409e765c6d691dcf4832bd059e7}
+      \strng{authorbibnamehash}{fb078409e765c6d691dcf4832bd059e7}
+      \strng{authornamehash}{db3ced165c9305367ed299b48d433857}
+      \strng{authorfullhash}{fb078409e765c6d691dcf4832bd059e7}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{2025 Symposium on Maritime Informatics and Robotics (MARIS)}
+      \field{title}{Analysis of 3D LiDAR and 1D FMCW Radar Effectiveness for Distance Estimation in Inland Ports for Remote-Controlled Ship Navigation}
+      \field{year}{2025}
+      \field{pages}{1\bibrangedash 8}
+      \range{pages}{8}
+      \verb{doi}
+      \verb 10.1109/MARIS64137.2025.11139524
+      \endverb
+      \keyw{Laser radar;Three-dimensional displays;Navigation;Estimation;Radar detection;Radar;Sensor systems;Sensors;Marine vehicles;Spatial resolution;Remote Control;LiDAR;Radar;Distance Estimation;Object Detection;Sensor Comparison;Field Trials}
+    \endentry
+    \entry{pierson1964frequency}{article}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=ca89af57bc39e4ecd3c0786950e91390}{%
+           family={Pierson},
+           familyi={P\bibinitperiod},
+           given={Willard\bibnamedelima J.},
+           giveni={W\bibinitperiod\bibinitdelim J\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=1a5f96f96114e864ca0522d79178937b}{%
+           family={Moskowitz},
+           familyi={M\bibinitperiod},
+           given={Lionel},
+           giveni={L\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{f495b89f317d4959568239683c794e14}
+      \strng{fullhash}{f495b89f317d4959568239683c794e14}
+      \strng{bibnamehash}{f495b89f317d4959568239683c794e14}
+      \strng{authorbibnamehash}{f495b89f317d4959568239683c794e14}
+      \strng{authornamehash}{f495b89f317d4959568239683c794e14}
+      \strng{authorfullhash}{f495b89f317d4959568239683c794e14}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Journal of Geophysical Research}
+      \field{number}{24}
+      \field{title}{A proposed spectral form for fully developed wind seas based on the similarity theory of {S.A.} {Kitaigorodskii}}
+      \field{volume}{69}
+      \field{year}{1964}
+      \field{pages}{5181\bibrangedash 5190}
+      \range{pages}{10}
+      \verb{doi}
+      \verb 10.1029/JZ069i024p05181
+      \endverb
+    \endentry
+    \entry{11320450}{article}{}
+      \name{author}{4}{}{%
+        {{un=0,uniquepart=base,hash=2f63557638a03061323d1a69a1bf53a1}{%
+           family={Pobar},
+           familyi={P\bibinitperiod},
+           given={M.},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=99ea61d6437396f5102281e86dc4e077}{%
+           family={Paulin},
+           familyi={P\bibinitperiod},
+           given={G.},
+           giveni={G\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=2efb2e9d44e756b484ef0001e0d9490b}{%
+           family={Ivasic-Kos},
+           familyi={I\bibinithyphendelim K\bibinitperiod},
+           given={M.},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=d7ea1ea04f8110bdc77f6a35a9d430d5}{%
+           family={Vorkapic},
+           familyi={V\bibinitperiod},
+           given={A.},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{528dcf7520aa1b9208d0157783403bb3}
+      \strng{fullhash}{8248dd1810811dd4d4e7ef5fb2c66b05}
+      \strng{bibnamehash}{8248dd1810811dd4d4e7ef5fb2c66b05}
+      \strng{authorbibnamehash}{8248dd1810811dd4d4e7ef5fb2c66b05}
+      \strng{authornamehash}{528dcf7520aa1b9208d0157783403bb3}
+      \strng{authorfullhash}{8248dd1810811dd4d4e7ef5fb2c66b05}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{IEEE Open Journal of Intelligent Transportation Systems}
+      \field{title}{Automated Real-Time Localized Sea State Estimation During Navigation Based on the Beaufort Scale}
+      \field{volume}{7}
+      \field{year}{2026}
+      \field{pages}{136\bibrangedash 154}
+      \range{pages}{19}
+      \verb{doi}
+      \verb 10.1109/OJITS.2025.3650057
+      \endverb
+      \keyw{Sea state;Accuracy;Estimation;Computer vision;Safety;Real-time systems;Navigation;Marine vehicles;Predictive models;Machine learning;computer vision;deep neural networks;sea state recognition;synthetic dataset}
+    \endentry
+    \entry{11155197}{article}{}
+      \name{author}{9}{}{%
+        {{un=0,uniquepart=base,hash=959691c9a2d3d0c969128802d6fb66e1}{%
+           family={Ren},
+           familyi={R\bibinitperiod},
+           given={Yunfan},
+           giveni={Y\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=eeb1997e90243832c59789c6e201732c}{%
+           family={Cai},
+           familyi={C\bibinitperiod},
+           given={Yixi},
+           giveni={Y\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=773d9946804c86701bba45002b691aff}{%
+           family={Li},
+           familyi={L\bibinitperiod},
+           given={Haotian},
+           giveni={H\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=02cfb826604463ea0a0e51f11981b52b}{%
+           family={Chen},
+           familyi={C\bibinitperiod},
+           given={Nan},
+           giveni={N\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=e147e2504f024cd279fd384aa08684a2}{%
+           family={Zhu},
+           familyi={Z\bibinitperiod},
+           given={Fangcheng},
+           giveni={F\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=a42e4d75b290dff1d46959276456d957}{%
+           family={Yin},
+           familyi={Y\bibinitperiod},
+           given={Longji},
+           giveni={L\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=8fc621d518afcd4d4ddfffb2389c09bc}{%
+           family={Kong},
+           familyi={K\bibinitperiod},
+           given={Fanze},
+           giveni={F\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=187514dd4e295ab01aeb6b9b449548b5}{%
+           family={Li},
+           familyi={L\bibinitperiod},
+           given={Rundong},
+           giveni={R\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=1abd82245aa19c8fee8c008741153a2f}{%
+           family={Zhang},
+           familyi={Z\bibinitperiod},
+           given={Fu},
+           giveni={F\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{f7094a8ed38b9302491c15bc48ff4596}
+      \strng{fullhash}{fb560b0f5dd505d2ca7e592c4c6ae6e2}
+      \strng{bibnamehash}{fb560b0f5dd505d2ca7e592c4c6ae6e2}
+      \strng{authorbibnamehash}{fb560b0f5dd505d2ca7e592c4c6ae6e2}
+      \strng{authornamehash}{f7094a8ed38b9302491c15bc48ff4596}
+      \strng{authorfullhash}{fb560b0f5dd505d2ca7e592c4c6ae6e2}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{IEEE/ASME Transactions on Mechatronics}
+      \field{number}{1}
+      \field{title}{A Survey on LiDAR-Based Autonomous Aerial Vehicles}
+      \field{volume}{31}
+      \field{year}{2026}
+      \field{pages}{1139\bibrangedash 1155}
+      \range{pages}{17}
+      \verb{doi}
+      \verb 10.1109/TMECH.2025.3599633
+      \endverb
+      \keyw{Laser radar;Autonomous aerial vehicles;State estimation;Sensors;Three-dimensional displays;Surveys;Navigation;Costs;Accuracy;Reliability;Applications on uncrewed aerial vehicle (UAV);LiDAR-based UAV;UAV autonomy}
+    \endentry
+    \entry{serrano2022optimization}{thesis}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=4bae8d852ddd6e6cee1c38e0b948a3b3}{%
+           family={Serrano},
+           familyi={S\bibinitperiod},
+           given={Pedro},
+           giveni={P\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{institution}{1}{%
+        {Instituto Superior Técnico, Universidade de Lisboa Lisboa, Portugal}%
+      }
+      \strng{namehash}{4bae8d852ddd6e6cee1c38e0b948a3b3}
+      \strng{fullhash}{4bae8d852ddd6e6cee1c38e0b948a3b3}
+      \strng{bibnamehash}{4bae8d852ddd6e6cee1c38e0b948a3b3}
+      \strng{authorbibnamehash}{4bae8d852ddd6e6cee1c38e0b948a3b3}
+      \strng{authornamehash}{4bae8d852ddd6e6cee1c38e0b948a3b3}
+      \strng{authorfullhash}{4bae8d852ddd6e6cee1c38e0b948a3b3}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Optimization of Obstacle Detection for Small UAVs}
+      \field{type}{phdthesis}
+      \field{year}{2022}
+    \endentry
+    \entry{jmse12010197}{article}{}
+      \name{author}{5}{}{%
+        {{un=0,uniquepart=base,hash=bb61174fbe105e446f49161829acf66e}{%
+           family={Shang},
+           familyi={S\bibinitperiod},
+           given={Yifan},
+           giveni={Y\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=11ae2b18bbaa2849d080d0ba6a914325}{%
+           family={Yu},
+           familyi={Y\bibinitperiod},
+           given={Wanneng},
+           giveni={W\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=84bb747e80c958ac4e2bde5baaa0b7b8}{%
+           family={Zeng},
+           familyi={Z\bibinitperiod},
+           given={Guangmiao},
+           giveni={G\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=cd533f71ba6bb346be2941132cec6605}{%
+           family={Li},
+           familyi={L\bibinitperiod},
+           given={Huihui},
+           giveni={H\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=ac0c265c968700e139d37faf8175ad6c}{%
+           family={Wu},
+           familyi={W\bibinitperiod},
+           given={Yuegao},
+           giveni={Y\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{24c3129b65142f4c50d74f4b0c9f6a78}
+      \strng{fullhash}{a6dced8f88ab776775996bda6018cdee}
+      \strng{bibnamehash}{a6dced8f88ab776775996bda6018cdee}
+      \strng{authorbibnamehash}{a6dced8f88ab776775996bda6018cdee}
+      \strng{authornamehash}{24c3129b65142f4c50d74f4b0c9f6a78}
+      \strng{authorfullhash}{a6dced8f88ab776775996bda6018cdee}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{Image recognition is vital for intelligent ships’ autonomous navigation. However, traditional methods often fail to accurately identify maritime objects’ spatial positions, especially under electromagnetic silence. We introduce the StereoYOLO method, an enhanced stereo vision-based object recognition and localization approach that serves autonomous vessels using only image sensors. It is specifically refined for maritime object recognition and localization scenarios through the integration of convolutional and coordinated attention modules. The method uses stereo cameras to identify and locate maritime objects in images and calculate their relative positions using stereo vision algorithms. Experimental results indicate that the StereoYOLO algorithm boosts the mean Average Precision at IoU threshold of 0.5 (mAP50) in object recognition by 5.23\%. Furthermore, the variation in range measurement due to target angle changes is reduced by 6.12\%. Additionally, upon measuring the distance to targets at varying ranges, the algorithm achieves an average positioning error of 5.73\%, meeting the accuracy and robustness criteria for maritime object collision avoidance on experimental platform ships.}
+      \field{issn}{2077-1312}
+      \field{journaltitle}{Journal of Marine Science and Engineering}
+      \field{number}{1}
+      \field{title}{StereoYOLO: A Stereo Vision-Based Method for Maritime Object Recognition and Localization}
+      \field{volume}{12}
+      \field{year}{2024}
+      \verb{doi}
+      \verb 10.3390/jmse12010197
+      \endverb
+      \verb{urlraw}
+      \verb https://www.mdpi.com/2077-1312/12/1/197
+      \endverb
+      \verb{url}
+      \verb https://www.mdpi.com/2077-1312/12/1/197
+      \endverb
+    \endentry
+    \entry{app12157447}{article}{}
+      \name{author}{7}{}{%
+        {{un=0,uniquepart=base,hash=97a1189030246c7ac371a900d715853a}{%
+           family={Sun},
+           familyi={S\bibinitperiod},
+           given={Hanyu},
+           giveni={H\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=9989bcf3c65e17e52f9ff2e1d935c773}{%
+           family={Wu},
+           familyi={W\bibinitperiod},
+           given={Guoqing},
+           giveni={G\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=eb2988d58574d3fab88ebfe5562cc1b8}{%
+           family={Wang},
+           familyi={W\bibinitperiod},
+           given={Xueliang},
+           giveni={X\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=228dd687961f3612985beeddec81f72a}{%
+           family={Zhang},
+           familyi={Z\bibinitperiod},
+           given={Tao},
+           giveni={T\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=c16b8dcff6e31e1be96b4f6a2eb66f5e}{%
+           family={Zhang},
+           familyi={Z\bibinitperiod},
+           given={Pu},
+           giveni={P\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=06debc36f6b61a405e8f0da1c7ccd6ca}{%
+           family={Chen},
+           familyi={C\bibinitperiod},
+           given={Wei},
+           giveni={W\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=76254471b70a99aab3451076a9d4e099}{%
+           family={Zhu},
+           familyi={Z\bibinitperiod},
+           given={Quanhua},
+           giveni={Q\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{5ad97509468a8bfab75760324b076cab}
+      \strng{fullhash}{40efbda79ec5b2c78208c82de946a127}
+      \strng{bibnamehash}{40efbda79ec5b2c78208c82de946a127}
+      \strng{authorbibnamehash}{40efbda79ec5b2c78208c82de946a127}
+      \strng{authornamehash}{5ad97509468a8bfab75760324b076cab}
+      \strng{authorfullhash}{40efbda79ec5b2c78208c82de946a127}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{The wave parameter is an important environmental input condition. Traditional contact wave measurement methods are unable to meet the requirements of high precision, non-contact, and ship wave field assessment. Alternatively, stereo vision technology can realize a non-contact and mobile form of measurement. However, this technology suffers from poor timeliness and adaptability. This paper proposes a comprehensive wave measurement method that is based on stereo vision, wherein the gridding of siftGPU is used to achieve the fast matching of large images. The whole algorithm can be run within 6 s and it guarantees more than 20,000 feature-matching logarithms. Furthermore, by utilizing the least squares method and sea surface wave surface theory, the sea surface base level can be calculated without control points, along with the inversion of the sea wave parameters (wave height, period, and wave direction) and error point fitting. The rationality and superiority of the algorithm were verified through multiple comparison experiments. Compared with the Richard Brancker Research (RBR) wave height meter, the measurement error of the wave height is less than 10\%, the period error is less than 0.5 s, and the wave direction error is less than 10° with the proposed method.}
+      \field{issn}{2076-3417}
+      \field{journaltitle}{Applied Sciences}
+      \field{number}{15}
+      \field{title}{Research on a Measurement Method for the Ocean Wave Field Based on Stereo Vision}
+      \field{volume}{12}
+      \field{year}{2022}
+      \verb{doi}
+      \verb 10.3390/app12157447
+      \endverb
+      \verb{urlraw}
+      \verb https://www.mdpi.com/2076-3417/12/15/7447
+      \endverb
+      \verb{url}
+      \verb https://www.mdpi.com/2076-3417/12/15/7447
+      \endverb
+    \endentry
+    \entry{toa2020ultrasonic}{article}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=a10d77c9cc2311471a799caa28de5410}{%
+           family={Toa},
+           familyi={T\bibinitperiod},
+           given={Mubina},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=1c1851c61330fb2bf2e73d4453a73421}{%
+           family={Whitehead},
+           familyi={W\bibinitperiod},
+           given={Akeem},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{79055a0d68cbaaccf0eda315de0984cc}
+      \strng{fullhash}{79055a0d68cbaaccf0eda315de0984cc}
+      \strng{bibnamehash}{79055a0d68cbaaccf0eda315de0984cc}
+      \strng{authorbibnamehash}{79055a0d68cbaaccf0eda315de0984cc}
+      \strng{authornamehash}{79055a0d68cbaaccf0eda315de0984cc}
+      \strng{authorfullhash}{79055a0d68cbaaccf0eda315de0984cc}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Dallas: Texas Instruments}
+      \field{title}{Ultrasonic sensing basics}
+      \field{year}{2020}
+      \field{pages}{53\bibrangedash 75}
+      \range{pages}{23}
+    \endentry
+    \entry{sym14071487}{article}{}
+      \name{author}{6}{}{%
+        {{un=0,uniquepart=base,hash=4e1d889563a49978ad5dcc9a4b3ae06c}{%
+           family={Umair},
+           familyi={U\bibinitperiod},
+           given={Muhammad},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=7fda5ac617b582767cfd750c38533ffb}{%
+           family={Hashmani},
+           familyi={H\bibinitperiod},
+           given={Manzoor\bibnamedelima Ahmed},
+           giveni={M\bibinitperiod\bibinitdelim A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=86954cc6205405349b90fe424e08612f}{%
+           family={Hussain\bibnamedelima Rizvi},
+           familyi={H\bibinitperiod\bibinitdelim R\bibinitperiod},
+           given={Syed\bibnamedelima Sajjad},
+           giveni={S\bibinitperiod\bibinitdelim S\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=2d5127c8501b93c9175b0649e1145492}{%
+           family={Taib},
+           familyi={T\bibinitperiod},
+           given={Hasmi},
+           giveni={H\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=66b411778f582dbd2277d31eb0e07539}{%
+           family={Abdullah},
+           familyi={A\bibinitperiod},
+           given={Mohd\bibnamedelima Nasir},
+           giveni={M\bibinitperiod\bibinitdelim N\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=c612130f5b96d83cb158ff1f1ba2ee65}{%
+           family={Memon},
+           familyi={M\bibinitperiod},
+           given={Mehak\bibnamedelima Maqbool},
+           giveni={M\bibinitperiod\bibinitdelim M\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{8c91a0f50bb159d85419baa1581cdb33}
+      \strng{fullhash}{94cc447d11ee54f75498ea926e273985}
+      \strng{bibnamehash}{94cc447d11ee54f75498ea926e273985}
+      \strng{authorbibnamehash}{94cc447d11ee54f75498ea926e273985}
+      \strng{authornamehash}{8c91a0f50bb159d85419baa1581cdb33}
+      \strng{authorfullhash}{94cc447d11ee54f75498ea926e273985}
+      \field{sortinit}{U}
+      \field{sortinithash}{6901a00e45705986ee5e7ca9fd39adca}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{Wind-waves exhibit variations both in shape and steepness, and their asymmetrical nature is a well-known feature. One of the important characteristics of the sea surface is the front-back asymmetry of wind-wave crests. The wind-wave conditions on the surface of the sea constitute a sea state, which is listed as an essential climate variable by the Global Climate Observing System and is considered a critical factor for structural safety and optimal operations of offshore oil and gas platforms. Methods such as statistical representations of sensor-based wave parameters observations and numerical modeling are used to classify sea states. However, for offshore structures such as oil and gas platforms, these methods induce high capital expenditures (CAPEX) and operating expenses (OPEX), along with extensive computational power and time requirements. To address this issue, in this paper, we propose a novel, low-cost deep learning-based sea state classification model using visual-range sea images. Firstly, a novel visual-range sea state image dataset was designed and developed for this purpose. The dataset consists of 100,800 images covering four sea states. The dataset was then benchmarked on state-of-the-art deep learning image classification models. The highest classification accuracy of 81.8\% was yielded by NASNet-Mobile. Secondly, a novel sea state classification model was proposed. The model took design inspiration from GoogLeNet, which was identified as the optimal reference model for sea state classification. Systematic changes in GoogLeNet’s inception block were proposed, which resulted in an 8.5\% overall classification accuracy improvement in comparison with NASNet-Mobile and a 7\% improvement from the reference model (i.e., GoogLeNet). Additionally, the proposed model took 26\% less training time, and its per-image classification time remains competitive.}
+      \field{issn}{2073-8994}
+      \field{journaltitle}{Symmetry}
+      \field{number}{7}
+      \field{title}{A Novel Deep Learning Model for Sea State Classification Using Visual-Range Sea Images}
+      \field{volume}{14}
+      \field{year}{2022}
+      \verb{doi}
+      \verb 10.3390/sym14071487
+      \endverb
+      \verb{urlraw}
+      \verb https://www.mdpi.com/2073-8994/14/7/1487
+      \endverb
+      \verb{url}
+      \verb https://www.mdpi.com/2073-8994/14/7/1487
+      \endverb
+    \endentry
+    \entry{9046805}{article}{}
+      \name{author}{4}{}{%
+        {{un=0,uniquepart=base,hash=0c3f0ad3da3151d25b9be89f2f2465b0}{%
+           family={Yurtsever},
+           familyi={Y\bibinitperiod},
+           given={Ekim},
+           giveni={E\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=bb0130687f341d41152fb7ecf5dcf8f1}{%
+           family={Lambert},
+           familyi={L\bibinitperiod},
+           given={Jacob},
+           giveni={J\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=c545cd85de7ae382971b9d8f679743bf}{%
+           family={Carballo},
+           familyi={C\bibinitperiod},
+           given={Alexander},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=2b2282fdbdd87a174a8a26f0e6e2f477}{%
+           family={Takeda},
+           familyi={T\bibinitperiod},
+           given={Kazuya},
+           giveni={K\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{e14c6e2428315cda2d2154b0131c6be0}
+      \strng{fullhash}{b847c40b635aa0be3c6b16a7a6ff16e6}
+      \strng{bibnamehash}{b847c40b635aa0be3c6b16a7a6ff16e6}
+      \strng{authorbibnamehash}{b847c40b635aa0be3c6b16a7a6ff16e6}
+      \strng{authornamehash}{e14c6e2428315cda2d2154b0131c6be0}
+      \strng{authorfullhash}{b847c40b635aa0be3c6b16a7a6ff16e6}
+      \field{sortinit}{Y}
+      \field{sortinithash}{fd67ad5a9ef0f7456bdd9aab10fe1495}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{IEEE Access}
+      \field{title}{A Survey of Autonomous Driving: Common Practices and Emerging Technologies}
+      \field{volume}{8}
+      \field{year}{2020}
+      \field{pages}{58443\bibrangedash 58469}
+      \range{pages}{27}
+      \verb{doi}
+      \verb 10.1109/ACCESS.2020.2983149
+      \endverb
+      \keyw{Automation;Task analysis;Systems architecture;Accidents;Planning;Vehicle dynamics;Robot sensing systems;Autonomous vehicles;control;robotics;automation;intelligent vehicles;intelligent transportation systems}
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

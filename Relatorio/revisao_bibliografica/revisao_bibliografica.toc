@@ -1,0 +1,25 @@
+\babel@toc {portuges}{}\relax 
+\contentsline {section}{\numberline {1}Introdução}{1}{section.1}%
+\contentsline {section}{\numberline {2}Modelos de Ondas Oceânicas}{2}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Teoria de Ondas Lineares}{2}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Ondas de Stokes}{2}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Modelos Estocásticos de Ondas}{3}{subsection.2.3}%
+\contentsline {subsubsection}{\numberline {2.3.1}Espectro de Pierson-Moskowitz}{3}{subsubsection.2.3.1}%
+\contentsline {subsubsection}{\numberline {2.3.2}Espectro JONSWAP}{4}{subsubsection.2.3.2}%
+\contentsline {subsection}{\numberline {2.4}Modelos de Águas Rasas (Equações de Boussinesq)}{4}{subsection.2.4}%
+\contentsline {section}{\numberline {3}Técnicas de Perceção}{4}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Radar de Onda Contínua Modulada por Frequência (FMCW)}{4}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Laser Rangefinding (LiDAR)}{5}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Câmaras Óticas}{5}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Radares Marítimos de Banda-X}{6}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.5}Sensores Ultrassónicos}{6}{subsection.3.5}%
+\contentsline {subsection}{\numberline {3.6}Câmaras Termográficas (IR)}{6}{subsection.3.6}%
+\contentsline {subsection}{\numberline {3.7}Altímetros}{6}{subsection.3.7}%
+\contentsline {subsection}{\numberline {3.8}Síntese e Escolha das Técnicas de Perceção}{7}{subsection.3.8}%
+\contentsline {section}{\numberline {4}Métodos de Fusão Multissensorial}{8}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Filtro de Kalman}{8}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Filtro Complementar}{8}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Redes Bayesianas}{8}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Dempster-Shafer Reasoning}{8}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}Deep Learning}{8}{subsection.4.5}%
+\contentsline {section}{\numberline {5}Conclusão}{8}{section.5}%

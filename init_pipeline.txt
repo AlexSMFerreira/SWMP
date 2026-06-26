@@ -39,12 +39,15 @@ python3 Nodes/ros2_pose_broadcaster.py --ros-args -p use_sim_time:=true
 # displays and for ros2_pose_validation.py's roll cross-check below.
 python3 Nodes/ros2_altimeter_publisher.py --ros-args -p use_sim_time:=true
 
-# Static base_link -> camera_left_rect (lever arm). IDENTITY PLACEHOLDER until the
-# GPS-antenna -> camera offset is measured (Phase 3 in NEXT_STEPS_POSE.md). The cloud
-# is already remapped to a ROS body convention (X-fwd, Y-left, Z-up) in the pointcloud
-# node, so this stays a pure translation/rotation once the lever arm is known.
+# Static base_link -> camera_left_rect (lever arm). Real translation from the rig CAD
+# (urdf_estrutura_ondas, link Left_cam): (0.044867, 0.51476, -0.0045012) m. Rotation is
+# IDENTITY: ros2_pointcloud_node.py already remaps the optical cloud into base-aligned FLU
+# (X-fwd, Y-left, Z-up), and the camera is mounted looking forward+level (Left_cam's URDF
+# rpy is the canonical FLU->optical rotation, verified against the stereo calibration to
+# ~3 mm and the node's own remap to within 0.05deg), so the post-remap cloud is already in
+# base_link orientation. See thought_process/WAVE_PARAMETERS_PLAN.md §3.5.
 ros2 run tf2_ros static_transform_publisher \
-  0 0 0 0 0 0 \
+  0.044867 0.51476 -0.0045012 0 0 0 \
   base_link camera_left_rect
 
 # Static base_link -> rslidar (lidar mounting). IDENTITY PLACEHOLDER until the lidar
@@ -56,6 +59,16 @@ ros2 run tf2_ros static_transform_publisher \
 
 # Optional: altitude/attitude validation against the laser altimeters (Phase 4).
 python3 Nodes/ros2_pose_validation.py --ros-args -p use_sim_time:=true
+
+# Wave parameters from the altimeters (temporal spectrum). Reads an altimeter + nav
+# altitude/attitude, reconstructs sea-surface elevation, publishes Hs/Tp/etc on
+# /waves/altimeter (+ scalar /waves/altimeter/* Float32 topics). source:=left|right|lightware.
+python3 Nodes/ros2_altimeter_waves.py --ros-args -p use_sim_time:=true
+
+# Wave parameters from the stereo point cloud (robust plane fit + spatial spectrum).
+# Needs /stereo/points + the map<-camera_left_rect TF. Publishes Hs/wavelength/direction/
+# period on /waves/pointcloud (+ scalar /waves/pointcloud/* Float32 topics).
+python3 Nodes/ros2_pointcloud_waves.py --ros-args -p use_sim_time:=true
 
 # Rig URDF visualization: urdf_estrutura_ondas (see CLAUDE.md) is the physical rig CAD —
 # real measured fixed-joint offsets for every sensor (cameras, lidar, altimeters, IMUs,

@@ -58,7 +58,6 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 import message_filters
 from sensor_msgs.msg import CameraInfo, Image, CompressedImage
-from std_msgs.msg import Float64
 from cv_bridge import CvBridge
 
 import cv2
@@ -167,7 +166,6 @@ class WAFTDisparityNode(Node):
         self._pub_disp_raw   = self.create_publisher(Image,           p('disp_raw_topic').value,   pub_qos)
         self._pub_disp_color = self.create_publisher(CompressedImage, p('disp_color_topic').value, vis_qos)
         self._pub_debug       = self.create_publisher(CompressedImage, '/stereo/debug/horizon/compressed', vis_qos)
-        self._pub_roll        = self.create_publisher(Float64,         '/stereo/horizon_roll',       vis_qos)
 
         self._sub_info = self.create_subscription(
             CameraInfo, p('rect_info_topic').value, self._cb_camera_info, pub_qos
@@ -225,7 +223,8 @@ class WAFTDisparityNode(Node):
 
         model.eval()
         model = model.to(self._device)
-
+        #model = torch.compile(model, dynamic=False)
+        
         ckpt_path = self._resolve_path(p('ckpt').value)
         checkpoint = torch.load(ckpt_path, map_location='cpu', weights_only=False)
         weights = checkpoint['model'] if isinstance(checkpoint, dict) and 'model' in checkpoint else checkpoint
@@ -423,16 +422,7 @@ class WAFTDisparityNode(Node):
         sky_mask, source = self._horizon.compute_mask(left_cv, mask_shape=mask_shape)
         mark('horizon')
 
-        # 2. Publish roll angle derived from horizon direction
-        if self._horizon._cur_raw is not None:
-            dx, dy = float(self._horizon._cur_raw[1][0]), float(self._horizon._cur_raw[1][1])
-            if dx < 0:
-                dx, dy = -dx, -dy
-            roll_msg      = Float64()
-            roll_msg.data = float(np.arctan2(dy, dx))
-            self._pub_roll.publish(roll_msg)
-
-        # 3. Run disparity inference at the matcher's own working resolution.
+        # 2. Run disparity inference at the matcher's own working resolution.
         # downscale_pair uses INTER_LINEAR, same as every other disparity backend's
         # pre-matcher downscale in this repo — cheaper than INTER_AREA, and the
         # anti-aliasing difference doesn't matter for a learned matcher's input.
@@ -445,18 +435,18 @@ class WAFTDisparityNode(Node):
         disparity_map = self._infer_disparity(work_left, work_right)
         mark('infer')
 
-        # 4. Zero out sky (mask already matches disparity_map's shape — see step 1).
+        # 3. Zero out sky (mask already matches disparity_map's shape — see step 1).
         disparity_map[sky_mask] = 0.0
         mark('mask')
 
-        # 5. Publish raw disparity (32FC1, pixels) at its own working resolution — see
+        # 4. Publish raw disparity (32FC1, pixels) at its own working resolution — see
         # module docstring for why this node, unlike the others, doesn't rescale back
         # up to native before publishing.
         disp_msg = make_disparity_msg(self._bridge, disparity_map, left_msg.header)
         self._pub_disp_raw.publish(disp_msg)
         mark('pub_raw')
 
-        # 6. Publish colourised preview — downscaled further only if still bigger than
+        # 5. Publish colourised preview — downscaled further only if still bigger than
         # preview_max_dim (normally a no-op now that disparity_map is already small).
         # Sky is already zero in disparity_map (step 4), and _colorize treats <=0 as
         # invalid/black, so no separate sky_mask indexing is needed on the small copy.
@@ -468,7 +458,7 @@ class WAFTDisparityNode(Node):
             self._pub_disp_color.publish(color_msg)
         mark('preview')
 
-        # 7. Publish horizon debug overlay — drawn directly on work_left (the matcher's
+        # 6. Publish horizon debug overlay — drawn directly on work_left (the matcher's
         # working-resolution image, already decoded above) instead of the native image
         # + downscale-after: same cheap copy/draw/encode benefit as the colour preview,
         # without paying for a full native-resolution .copy() + JPEG encode first.

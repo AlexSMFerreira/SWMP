@@ -1,0 +1,10 @@
+@article{sun2022research,
+  title={Research on a measurement method for the ocean wave field based on stereo vision},
+  author={Sun, Hanyu and Wu, Guoqing and Wang, Xueliang and Zhang, Tao and Zhang, Pu and Chen, Wei and Zhu, Quanhua},
+  journal={Applied Sciences},
+  volume={12},
+  number={15},
+  pages={7447},
+  year={2022},
+  publisher={MDPI}
+}

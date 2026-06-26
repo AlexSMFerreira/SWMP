@@ -3,7 +3,6 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 import message_filters
 from sensor_msgs.msg import CameraInfo, Image, PointCloud2, PointField
-from std_msgs.msg import Float64
 from cv_bridge import CvBridge
 
 import cv2
@@ -25,8 +24,6 @@ class PointCloudNode(Node):
         self.declare_parameter('max_depth',        100.0)  # Beyond ~45 m a ±0.5 px error → ±3+ m depth uncertainty
         self.declare_parameter('min_depth',        0.0)  # Below ~2.45 m disparity saturates / hits baseline limit
         self.declare_parameter('downsample_factor', 3)    # 1 = Full, 2 = Half, 3 = Third (Boosts FPS)
-        self.declare_parameter('roll_topic',        '/stereo/horizon_roll')   # '' to disable
-        self.declare_parameter('pitch_topic',       '/stereo/horizon_pitch')  # '' to disable
 
         # The rectifier publishes left/right at native camera resolution (e.g.
         # 2464x2056). Most disparity backends rescale their output back up to that
@@ -60,8 +57,6 @@ class PointCloudNode(Node):
         self.max_depth = p('max_depth').value
         self.min_depth = p('min_depth').value
         self.ds = p('downsample_factor').value
-        self._roll_rad: float = 0.0
-        self._pitch_rad: float = 0.0
 
         # ── PUBLISHERS ────────────────────────────────────────────────────────
         # With Zenoh middleware, we can safely use standard RELIABLE QoS
@@ -76,12 +71,6 @@ class PointCloudNode(Node):
         self._sub_info = self.create_subscription(
             CameraInfo, p('rect_info_topic').value, self._cb_camera_info, sub_qos
         )
-        roll_topic = p('roll_topic').value
-        if roll_topic:
-            self.create_subscription(Float64, roll_topic, self._cb_roll, sub_qos)
-        pitch_topic = p('pitch_topic').value
-        if pitch_topic:
-            self.create_subscription(Float64, pitch_topic, self._cb_pitch, sub_qos)
         self.get_logger().info("PointCloud Node waiting for Q-Matrix metadata...")
 
         self._sync_qos = sub_qos
@@ -112,12 +101,6 @@ class PointCloudNode(Node):
         elapsed = time.monotonic() - self._last_frame_time
         if elapsed > 3.0:
             self._reset_sync(f'no frame for {elapsed:.1f}s')
-
-    def _cb_roll(self, msg: Float64):
-        self._roll_rad = msg.data
-
-    def _cb_pitch(self, msg: Float64):
-        self._pitch_rad = msg.data
 
     def _cb_camera_info(self, msg: CameraInfo):
         """Extracts the 4x4 Disparity-to-Depth Q Matrix packed by the Rectifier Node."""
@@ -201,28 +184,7 @@ class PointCloudNode(Node):
             valid_points = valid_points[::self.ds]
             valid_colors = valid_colors[::self.ds]
 
-        # 5. Cancel drone roll: rotate around camera Z (forward) by -roll_rad.
-        # valid_points columns are (X_cv=right, Y_cv=down, Z_cv=forward).
-        r = self._roll_rad
-        if abs(r) > 1e-4:
-            c, s = np.cos(r), np.sin(r)
-            x_cv = valid_points[:, 0].copy()
-            y_cv = valid_points[:, 1].copy()
-            valid_points[:, 0] = c * x_cv + s * y_cv
-            valid_points[:, 1] = -s * x_cv + c * y_cv
-
-        # Cancel drone pitch: rotate around camera X (right) to keep the horizon
-        # fixed vertically. Positive pitch = drone nose up = horizon below centre.
-        # Rotation by -pitch around X_cv: Y' = cos(p)*Y + sin(p)*Z, Z' = -sin(p)*Y + cos(p)*Z
-        p_pitch = self._pitch_rad
-        if abs(p_pitch) > 1e-4:
-            cp, sp = np.cos(p_pitch), np.sin(p_pitch)
-            y_cv = valid_points[:, 1].copy()
-            z_cv = valid_points[:, 2].copy()
-            valid_points[:, 1] = cp * y_cv - sp * z_cv
-            valid_points[:, 2] = sp * y_cv + cp * z_cv
-
-        # 6. Super-fast RGB byte packing for ROS 2 PointCloud2 standards
+        # 5. Super-fast RGB byte packing for ROS 2 PointCloud2 standards
         b = valid_colors[:, 0].astype(np.uint32)
         g = valid_colors[:, 1].astype(np.uint32)
         rgb_r = valid_colors[:, 2].astype(np.uint32)

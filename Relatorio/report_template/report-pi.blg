@@ -1,0 +1,16 @@
+[0] Config.pm:307> INFO - This is Biber 2.17
+[0] Config.pm:310> INFO - Logfile is 'report-pi.blg'
+[96] biber:340> INFO - === sex mar  6, 2026, 12:13:20
+[119] Biber.pm:418> INFO - Reading 'report-pi.bcf'
+[277] Biber.pm:972> INFO - Found 12 citekeys in bib section 0
+[286] Biber.pm:4383> INFO - Processing section 0
+[293] Biber.pm:4574> INFO - Looking for bibtex file 'bibliography.bib' for section 0
+[294] bibtex.pm:1713> INFO - LaTeX decoding ...
+[304] bibtex.pm:1518> INFO - Found BibTeX data source 'bibliography.bib'
+[377] UCollate.pm:68> INFO - Overriding locale 'pt-PT' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[377] UCollate.pm:68> INFO - Overriding locale 'pt-PT' defaults 'variable = shifted' with 'variable = non-ignorable'
+[377] UCollate.pm:68> INFO - Overriding locale 'pt-PT' defaults 'level = 4' with 'level = 2'
+[377] Biber.pm:4203> INFO - Sorting list 'cms/global//global/global' of type 'entry' with template 'cms' and locale 'pt-PT'
+[377] Biber.pm:4209> INFO - No sort tailoring available for locale 'pt-PT'
+[388] bbl.pm:654> INFO - Writing 'report-pi.bbl' with encoding 'UTF-8'
+[393] bbl.pm:757> INFO - Output to report-pi.bbl

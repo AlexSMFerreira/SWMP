@@ -58,6 +58,7 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 import message_filters
 from sensor_msgs.msg import CameraInfo, Image, CompressedImage
+from std_msgs.msg import Float32
 from cv_bridge import CvBridge
 
 import cv2
@@ -66,6 +67,7 @@ import torch
 
 from stereo_common import (
     HorizonMasker, extract_baseline_fx, make_disparity_msg, make_color_msg, downscale_pair,
+    photometric_consistency_error,
 )
 
 _PRECISION_DTYPES = {
@@ -166,6 +168,15 @@ class WAFTDisparityNode(Node):
         self._pub_disp_raw   = self.create_publisher(Image,           p('disp_raw_topic').value,   pub_qos)
         self._pub_disp_color = self.create_publisher(CompressedImage, p('disp_color_topic').value, vis_qos)
         self._pub_debug       = self.create_publisher(CompressedImage, '/stereo/debug/horizon/compressed', vis_qos)
+
+        # No-reference disparity-quality metric (left-right photometric consistency),
+        # for the cross-backend comparison — see stereo_common.photometric_consistency_error.
+        # Computed against work_left/work_right (the matcher's own working resolution,
+        # same as disparity_map here — see module docstring on why WAFT doesn't
+        # rescale back to native), not the native left_cv/right_cv.
+        self._pub_photo_err = self.create_publisher(Float32, '/stereo/disparity_quality/photo_error', vis_qos)
+        self._pub_valid_frac = self.create_publisher(Float32, '/stereo/disparity_quality/valid_fraction', vis_qos)
+        self._pub_latency = self.create_publisher(Float32, '/stereo/disparity_quality/latency_ms', vis_qos)
 
         self._sub_info = self.create_subscription(
             CameraInfo, p('rect_info_topic').value, self._cb_camera_info, pub_qos
@@ -439,6 +450,16 @@ class WAFTDisparityNode(Node):
         disparity_map[sky_mask] = 0.0
         mark('mask')
 
+        # No-reference disparity-quality metric — work_left/work_right are at the
+        # same resolution as disparity_map (see class docstring: WAFT does not
+        # rescale back to native), unlike every other disparity node in this repo.
+        work_left_gray = cv2.cvtColor(work_left, cv2.COLOR_BGR2GRAY)
+        work_right_gray = cv2.cvtColor(work_right, cv2.COLOR_BGR2GRAY)
+        photo_err, valid_frac = photometric_consistency_error(work_left_gray, work_right_gray, disparity_map)
+        self._pub_photo_err.publish(Float32(data=photo_err))
+        self._pub_valid_frac.publish(Float32(data=valid_frac))
+        mark('photo_err')
+
         # 4. Publish raw disparity (32FC1, pixels) at its own working resolution — see
         # module docstring for why this node, unlike the others, doesn't rescale back
         # up to native before publishing.
@@ -474,13 +495,15 @@ class WAFTDisparityNode(Node):
         mark('debug')
 
         total_ms = (marks[-1][1] - marks[0][1]) * 1000
+        self._pub_latency.publish(Float32(data=total_ms))
         breakdown = ' '.join(
             f'{name}={(t1 - t0) * 1000:.1f}'
             for (_, t0), (name, t1) in zip(marks, marks[1:])
         )
         self.get_logger().info(
             f'WAFT-Stereo | [{source}] | iters={self._model.iters} | '
-            f'total={total_ms:.1f}ms | {breakdown}'
+            f'total={total_ms:.1f}ms | {breakdown} | '
+            f'photo_err={photo_err:.2f} valid={valid_frac:.2%}'
         )
 
 

@@ -22,6 +22,7 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 import message_filters
 from sensor_msgs.msg import CameraInfo, Image, CompressedImage
+from std_msgs.msg import Float32
 from cv_bridge import CvBridge
 
 import cv2
@@ -30,7 +31,7 @@ import time
 from stereo_common import (
     HorizonMasker, extract_baseline_fx, to_float_disparity,
     make_disparity_msg, colorize_disparity, make_color_msg,
-    downscale_pair, rescale_disparity,
+    downscale_pair, rescale_disparity, photometric_consistency_error,
 )
 
 
@@ -100,6 +101,12 @@ class SGMCudaDisparityNode(Node):
         self._pub_debug = self.create_publisher(CompressedImage, p('debug_topic').value,      vis_qos)
         self._debug_horizon = p('debug_horizon').value
 
+        # No-reference disparity-quality metric (left-right photometric consistency),
+        # for the cross-backend comparison — see stereo_common.photometric_consistency_error.
+        self._pub_photo_err = self.create_publisher(Float32, '/stereo/disparity_quality/photo_error', vis_qos)
+        self._pub_valid_frac = self.create_publisher(Float32, '/stereo/disparity_quality/valid_fraction', vis_qos)
+        self._pub_latency = self.create_publisher(Float32, '/stereo/disparity_quality/latency_ms', vis_qos)
+
         self._sub_info = self.create_subscription(
             CameraInfo, p('rect_info_topic').value, self._cb_camera_info, pub_qos
         )
@@ -143,7 +150,14 @@ class SGMCudaDisparityNode(Node):
         sky_mask, source = self._masker.compute_mask(left_bgr)
         disp[sky_mask] = 0.0
 
+        full_left_gray = cv2.cvtColor(left_bgr, cv2.COLOR_BGR2GRAY)
+        full_right_gray = cv2.cvtColor(right_bgr, cv2.COLOR_BGR2GRAY)
+        photo_err, valid_frac = photometric_consistency_error(full_left_gray, full_right_gray, disp)
+        self._pub_photo_err.publish(Float32(data=photo_err))
+        self._pub_valid_frac.publish(Float32(data=valid_frac))
+
         latency = (time.perf_counter() - start) * 1000.0
+        self._pub_latency.publish(Float32(data=latency))
 
         self._pub_disp.publish(make_disparity_msg(self._bridge, disp, left_msg.header))
 
@@ -159,7 +173,10 @@ class SGMCudaDisparityNode(Node):
             if debug_msg is not None:
                 self._pub_debug.publish(debug_msg)
 
-        self.get_logger().info(f"CUDA-SGM disparity | [{source}] | {latency:.1f} ms")
+        self.get_logger().info(
+            f"CUDA-SGM disparity | [{source}] | {latency:.1f} ms | "
+            f"photo_err={photo_err:.2f} valid={valid_frac:.2%}"
+        )
 
 
 def main(args=None):

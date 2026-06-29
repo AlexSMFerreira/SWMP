@@ -1,0 +1,154 @@
+\documentclass[10pt]{article}
+\usepackage[english]{babel}
+\usepackage{url}
+\usepackage{graphicx}
+\graphicspath{ {./figures/} }
+
+
+
+\begin{document}
+
+\begin{titlepage}
+	\begin{center}
+		\vspace*{1.0cm}
+
+    	{\fontsize{17}{16}\selectfont \textbf{Sea Wave Modelling and Prediction Based on Multisensor Fusion}}
+
+
+		\vspace{1.0cm}
+		Final Report of the Integrative Project
+
+		\vspace{1.5cm}
+
+		\textbf{Alexandre Ferreira}
+
+				\vfill
+
+		\includegraphics[width=0.4\textwidth]{UPORTO_fundotransparente}
+
+		\vfill
+
+
+
+		Bachelor's Degree in Informatics and Computing Engineering
+
+		\vspace{0.8cm}
+
+
+		\textbf{Tutor at U.Porto}: Prof. Pedro Ribeiro\\
+		\textbf{Company/Proposer Supervisor}: Prof. Eduardo Silva \\
+
+\vspace{0.4cm}
+		June 22, 2026
+
+	\end{center}
+\end{titlepage}
+
+
+\thispagestyle{empty}
+\clearpage
+
+\thispagestyle{empty}
+\tableofcontents
+
+ \clearpage
+
+\section{Introduction}
+
+
+
+	\subsection{Context}
+
+	\begin{itemize}
+    \item Introduce the purpose of the report.
+	\item Present the organizational context in which the project/internship took place (company, institution, research unit, research laboratory, etc.).
+	\item Present the problem addressed and the motivation for the work carried out.
+    \end{itemize}
+
+	\input{sections/Introduction/Context}
+
+	\subsection{Objectives and expected results}
+
+	State the objectives of the work and the expected results.
+
+	\input{sections/Introduction/Objectives.tex}
+
+	\subsection{Report structure}
+
+	Explain the structure of the report.
+
+	\input{sections/Introduction/Structure.tex}
+
+\section{Methodology and main activities carried out}
+
+\subsection{Methodology used}
+
+    Describe the methodology\cite{despa2014comparative} followed (e.g. iterative development with biweekly sprints and weekly follow-up meetings) and the resources used (e.g. GitHub \cite{github}, etc.).
+
+	\input{sections/Methodology/Methodology.tex}
+
+\subsection{Stakeholders, roles and responsibilities}
+
+Identify the project team, stakeholders and other parties with whom there was interaction; in the case of group work, clarify the roles and responsibilities of each group member.
+
+\input{sections/Methodology/Intervenients.tex}
+
+\subsection{Activities carried out}
+
+Describe the activities carried out over time (including relevant events such as presentations, client meetings, etc.) and the respective deliverables, typically using a Gantt chart\cite{gantt} and a summary description of each activity/deliverable.
+
+\input{sections/Methodology/Activities.tex}
+
+\section{Solution development}
+
+\subsection{Requirements}
+
+Identify the relevant functional and non-functional requirements and their sources, as well as project constraints.
+
+\input{sections/Development/Requirements.tex}
+
+\subsection{Architecture and technologies}
+
+Architecture and technologies used and their justification, technical diagrams produced, technical difficulties encountered and their resolution, etc.
+
+\input{sections/Development/Arquitecture.tex}
+
+\subsection{Developed solution}
+
+Present the developed solution from the user's perspective, with the help of screenshots.
+
+\input{sections/Development/Solution.tex}
+
+\subsection{Validation}
+
+Description of the validation of the developed solution (e.g. experimental evaluation results, tests performed, feedback from users or experts, etc.).
+
+\input{sections/Development/Validation.tex}
+
+\section{Conclusions}
+
+
+
+\subsection{Results achieved}
+ Summarize the results achieved and contributions (with respect to the objectives).
+
+ \input{sections/Conclusions/Results.tex}
+\subsection{Lessons learned}
+ Reflect on the lessons learned (taking into account the learning objectives).
+
+ \input{sections/Conclusions/Lessons.tex}
+\subsection{Future work}
+
+ Ideas for improvements and future work.
+
+ \input{sections/Conclusions/Future.tex}
+\subsection{SDG impact}
+
+If applicable, identify the contribution of the work to the Sustainable Development Goals (SDGs) established by the
+United Nations (https://sdgs.un.org/goals), with a view to a more sustainable and inclusive future.
+
+\input{sections/Conclusions/ODS.tex}
+\bibliographystyle{plain}
+\bibliography{refs} % Entries are in the refs.bib file
+
+\end{document}

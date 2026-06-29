@@ -83,6 +83,30 @@ def colorize_disparity(disp_float, num_disparities):
     return color
 
 
+def photometric_consistency_error(left_gray, right_gray, disp):
+    """No-reference disparity-quality metric, for comparing backends without ground
+    truth: warps right_gray into the left frame using disp (samples right at x-disp
+    for every pixel) and measures the mean absolute intensity difference against
+    left_gray over pixels with valid (>0) disparity. A wrong disparity value warps in
+    the wrong source pixel and shows up as a large mismatch even with no depth
+    reference available — this is the standard left-right photometric check used to
+    score stereo matching.
+
+    Returns (mean_abs_diff, valid_fraction). mean_abs_diff is NaN if no pixel has a
+    valid disparity (valid_fraction will be 0.0 in that case)."""
+    h, w = disp.shape[:2]
+    xg, yg = np.meshgrid(np.arange(w, dtype=np.float32), np.arange(h, dtype=np.float32))
+    map_x = xg - disp
+    valid = (disp > 0) & (map_x >= 0)
+    warped = cv2.remap(right_gray, map_x.astype(np.float32), yg, interpolation=cv2.INTER_LINEAR,
+                        borderMode=cv2.BORDER_CONSTANT, borderValue=0)
+    diff = np.abs(left_gray.astype(np.float32) - warped.astype(np.float32))
+    n_valid = int(valid.sum())
+    if n_valid == 0:
+        return float('nan'), 0.0
+    return float(diff[valid].mean()), n_valid / valid.size
+
+
 def make_color_msg(color_bgr, header):
     """Builds a jpeg CompressedImage preview."""
     success, buf = cv2.imencode('.jpg', color_bgr)

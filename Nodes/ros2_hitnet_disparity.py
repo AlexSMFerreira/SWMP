@@ -6,6 +6,7 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 import message_filters
 from sensor_msgs.msg import CameraInfo, Image, CompressedImage
+from std_msgs.msg import Float32
 from cv_bridge import CvBridge
 
 import cv2
@@ -19,7 +20,7 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from hitnet import HitNet, ModelType, CameraConfig
-from stereo_common import rescale_disparity
+from stereo_common import rescale_disparity, photometric_consistency_error
 
 
 class HitNetDisparityNode(Node):
@@ -56,6 +57,12 @@ class HitNetDisparityNode(Node):
         self._pub_disp_raw   = self.create_publisher(Image,           p('disp_raw_topic').value,  pub_qos)
         self._pub_disp_color = self.create_publisher(CompressedImage, p('disp_color_topic').value, vis_qos)
         self._pub_debug      = self.create_publisher(CompressedImage, '/stereo/debug/horizon/compressed', vis_qos)
+
+        # No-reference disparity-quality metric (left-right photometric consistency),
+        # for the cross-backend comparison — see stereo_common.photometric_consistency_error.
+        self._pub_photo_err = self.create_publisher(Float32, '/stereo/disparity_quality/photo_error', vis_qos)
+        self._pub_valid_frac = self.create_publisher(Float32, '/stereo/disparity_quality/valid_fraction', vis_qos)
+        self._pub_latency = self.create_publisher(Float32, '/stereo/disparity_quality/latency_ms', vis_qos)
 
         self._sub_info = self.create_subscription(
             CameraInfo, p('rect_info_topic').value, self._cb_camera_info, pub_qos
@@ -277,7 +284,15 @@ class HitNetDisparityNode(Node):
         # 4. Zero out sky
         disparity_map[sky_mask] = 0.0
 
+        full_left_gray = cv2.cvtColor(left_cv, cv2.COLOR_BGR2GRAY)
+        full_right_gray = cv2.cvtColor(right_cv, cv2.COLOR_BGR2GRAY)
+        photo_err, valid_frac = photometric_consistency_error(full_left_gray, full_right_gray, disparity_map)
+        self._pub_photo_err.publish(Float32(data=photo_err))
+        self._pub_valid_frac.publish(Float32(data=valid_frac))
+
         latency = (time.perf_counter() - start_time) * 1000
+
+        self._pub_latency.publish(Float32(data=latency))
 
         # 5. Publish raw disparity
         disp_msg = self._bridge.cv2_to_imgmsg(disparity_map, encoding='32FC1')
@@ -304,7 +319,7 @@ class HitNetDisparityNode(Node):
             f"Disparity | [{source}] "
             f"mean=({horizon_masked[0][0]:.0f},{horizon_masked[0][1]:.0f}) "
             f"dir=({horizon_masked[1][0]:.2f},{horizon_masked[1][1]:.2f}) | "
-            f"{latency:.1f} ms"
+            f"{latency:.1f} ms | photo_err={photo_err:.2f} valid={valid_frac:.2%}"
         )
 
 

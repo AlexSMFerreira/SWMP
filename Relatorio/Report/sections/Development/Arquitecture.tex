@@ -1,0 +1,163 @@
+\label{sec:architecture}
+
+\textbf{Pipeline overview.} The system is a chain of ROS~2 nodes operating on a calibrated stereo pair, a navigation/INS solution, and a set of laser altimeters. A rectification node undistorts and rectifies the raw stereo images and publishes the corresponding camera calibration. Its output feeds a disparity-estimation node (interchangeable between six backends, discussed below), whose disparity map is reprojected into a coloured 3D point cloud. In parallel, a pose-broadcasting node consumes the navigation solution and publishes the platform's pose and a map~$\leftrightarrow$~body transform, which georeferences the point cloud and is also used by an altimeter-publishing node to place the laser-altimeter readings in the same frame. Two further nodes consume this georeferenced data to estimate sea-state parameters independently: one analyses the temporal signal from a single altimeter, the other analyses the spatial geometry of the stereo point cloud. Figure~\ref{fig:pipeline-architecture} summarises the node graph and the topics connecting each stage.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{pipeline_architecture}
+	\caption{Pipeline architecture: ROS~2 nodes and the topics connecting them.}
+	\label{fig:pipeline-architecture}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.85\textwidth]{diagrams/tf_frame_tree}
+	\caption{Sensor frame tree. Static transforms are wired at startup; the map~$\leftrightarrow$~base\_link transform is published live by the pose-broadcasting node. The \texttt{rslidar} transform remains an identity placeholder pending resolution of a clock-domain timestamp mismatch in the lidar recording.}
+	\label{fig:tf-frame-tree}
+\end{figure}
+
+\subsection*{Disparity-estimation methods and comparison}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.85\textwidth]{original_camera_footage}
+	\caption{Typical left-camera frame from the stereo bag. The sea surface is largely textureless with specular highlights, making it an adversarial target for photometric stereo matching.}
+	\label{fig:raw-camera}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.85\textwidth]{horizon_detection}
+	\caption{Sky/horizon masking applied by the shared pre-processing stage. Pixels above the detected horizon line (shown in red) are excluded from disparity estimation and point-cloud reconstruction, preventing sky matches from corrupting the sea-surface output.}
+	\label{fig:horizon-detection}
+\end{figure}
+
+The sea surface is a uniquely adversarial target for stereo matching: it is low-texture over large areas, and its specular, non-Lambertian reflections change with viewpoint and violate the brightness-constancy assumption that local photometric matching relies on. The combination of ambiguous matches in textureless regions, plus systematically wrong matches under specular highlights breaks classical block-matching stereo, and is well documented in stereo-vision work specifically targeting maritime/wave surfaces~\cite{app12157447,jmse12010197,li2025thermal}. Identifying a backend that copes with this was the central engineering problem of the project, more so than any individual integration bug, and is treated as the main result of the Architecture work.
+
+Six interchangeable disparity-estimation backends were implemented and evaluated, sharing the same input/output contract (rectified stereo pair in, scaled disparity and packed point-cloud-ready output out, plus shared sky/horizon masking) so that they are drop-in replacements for one another and a fair comparison is possible without touching the rest of the pipeline:
+
+\begin{itemize}
+	\item \textbf{Classical, no training data required:} block matching (StereoBM, fastest, weakest on low-texture targets), semi-global matching (StereoSGBM, using Hirschmüller's global smoothness formulation~\cite{hirschmuller2008stereo}, the strongest classical option but slower), and a GPU-accelerated semi-global matcher (\texttt{cv2.\allowbreak{}cuda.\allowbreak{}StereoSGM}, SGM-style quality targeting GPU-class throughput).
+	\item \textbf{Machine learning-based:} HITNet~\cite{DBLP:journals/corr/abs-2007-12140} (a hierarchical network that propagates disparity hypotheses and confidences across a tile pyramid rather than building an explicit cost volume, enabling real-time inference), RAFT-Stereo~\cite{DBLP:journals/corr/abs-2109-07547} (tuned via mixed precision and a reduced iteration count to fit the VRAM budget), and WAFT-Stereo~\cite{wang2026waftstereowarpingalonefieldtransforms} (a warping-alone field-transform architecture, state-of-the-art on standard stereo benchmarks at publication time; the smallest of its three published checkpoint sizes was used to fit the available VRAM).
+\end{itemize}
+
+\subsubsection*{Comparison methodology and results}
+
+All six backends were run, one at a time, against the same $\sim$90-second recorded segment (after a fixed warm-up period), in an otherwise identical pipeline (navigation playback, pose broadcaster, rectifier, the disparity backend under test, point-cloud reconstruction, and the point-cloud wave estimator). Four metrics were recorded per backend: a photometric-consistency error on the disparity map (lower is better), the fraction of pixels with a valid disparity estimate, end-to-end latency, and as an end-to-end, application-level quality signal whether and how reliably the resulting point cloud was usable by the downstream wave estimator (its dropped-frame/good-frame ratio and the wave-height estimate it produced). The three classical backends were evaluated twice: with their library default parameters, and after a manual tuning pass confirmed on the full capture. Table~\ref{tab:disparity-comparison} reports the results.
+
+\begin{table}[H]
+	\centering
+	\caption{Disparity-backend comparison on a fixed $\sim$90\,s recorded segment.}
+	\label{tab:disparity-comparison}
+	\small
+	\resizebox{\textwidth}{!}{%
+	\begin{tabular}{l c c c c c}
+		\textbf{Backend} & \textbf{Photo.\ err.} & \textbf{Valid \%} & \textbf{Latency (ms, med/p90)} & \textbf{PC bad:good} & \textbf{PC $H_s$} \\
+		\hline
+		StereoBM, default      & n/a   & 0.0\%  & 9.4 / 10.9   & n/a (always empty) & n/a \\
+		StereoBM, tuned        & 14.06 & 19.2\% & 8.7 / 10.1   & 3.7 & 0.97~m \\
+		StereoSGBM, default    & 12.49 & 23.8\% & 43.9 / 53.0  & 2.2 & 0.91~m \\
+		StereoSGBM, tuned      & 12.50 & 23.8\% & 40.3 / 45.9  & 1.0 & 0.90~m \\
+		SGM-CUDA, default      & 13.22 & 7.1\%  & 10.1 / 11.2  & n/a (always empty) & n/a \\
+		SGM-CUDA, tuned        & 12.92 & 17.0\% & 8.6 / 9.8    & n/a (always empty) & n/a \\
+		HITNet                  & 14.27 & 35.8\% & 37.3 / 40.0  & 0.20 & 0.79~m \\
+		RAFT-Stereo             & 12.90 & 33.7\% & 115.0 / 162.2 & 0.07 & 0.50~m \\
+		WAFT-Stereo             & 12.92 & 36.0\% & 114.2 / 160.6 & 0.00 & 0.29~m \\
+	\end{tabular}}
+\end{table}
+
+\begin{figure}[H]
+	\centering
+	\begin{minipage}[t]{0.48\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{sbm_disparity}
+	\end{minipage}\hfill
+	\begin{minipage}[t]{0.48\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{sbm_pc}
+	\end{minipage}
+	\caption{StereoBM (tuned): disparity map (left) and resulting point cloud (right). Large invalid regions reflect block matching's inability to find reliable matches on the textureless sea surface; the point cloud is sparse and noisy.}
+	\label{fig:sbm-result}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\begin{minipage}[t]{0.48\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{sgbm_disparity}
+	\end{minipage}\hfill
+	\begin{minipage}[t]{0.48\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{sgbm_pointcloud}
+	\end{minipage}
+	\caption{StereoSGBM (tuned): disparity map (left) and resulting point cloud (right). The global smoothness regularisation recovers more surface coverage than StereoBM, producing a denser cloud, though disparity failures remain frequent over specular patches.}
+	\label{fig:sgbm-result}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\begin{minipage}[t]{0.48\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{sgm_cuda_disparity}
+	\end{minipage}\hfill
+	\begin{minipage}[t]{0.48\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{sgm_pc}
+	\end{minipage}
+	\caption{SGM-CUDA (tuned): disparity map (left) and resulting point cloud (right). GPU acceleration reduces latency relative to StereoSGBM but the absence of left--right consistency checking leaves the point cloud too sparse for the wave estimator to fit a surface.}
+	\label{fig:sgm-cuda-result}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\begin{minipage}[t]{0.48\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{hitnet_disparity}
+	\end{minipage}\hfill
+	\begin{minipage}[t]{0.48\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{hitnet_pc}
+	\end{minipage}
+	\caption{HITNet: disparity map (left) and resulting point cloud (right). The learned backbone recovers substantially more valid disparity over textureless and specular areas, yielding a dense and well-structured sea-surface point cloud.}
+	\label{fig:hitnet-result}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\begin{minipage}[t]{0.48\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{raft_disparity}
+	\end{minipage}\hfill
+	\begin{minipage}[t]{0.48\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{raft_pc}
+	\end{minipage}
+	\caption{RAFT-Stereo: disparity map (left) and resulting point cloud (right). The iterative correlation-volume approach handles the low-texture sea surface well, with a low bad-frame rate and a dense cloud, at the cost of higher latency than HITNet.}
+	\label{fig:raft-result}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\begin{minipage}[t]{0.48\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{waft_disparity}
+	\end{minipage}\hfill
+	\begin{minipage}[t]{0.48\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{waft_pc}
+	\end{minipage}
+	\caption{WAFT-Stereo: disparity map (left) and resulting point cloud (right). The warping-alone field-transform architecture achieves zero dropped frames over the evaluation segment and produces the $H_s$ closest to the altimeter cross-validation reference, at latency comparable to RAFT-Stereo.}
+	\label{fig:waft-result}
+\end{figure}
+
+\emph{PC bad:good} is the ratio of disparity-failure frames dropped by the point-cloud wave estimator's per-frame quality gate to good frames retained, measured over the most recent reporting window (not a cumulative 0--1 fraction); \emph{PC $H_s$} is the significant wave height the point-cloud estimator produced from the surviving frames. ``n/a (always empty)'' means the point cloud never had enough valid disparity to support a single sea-surface plane fit during the whole capture, so the wave estimator never produced a value at all.
+
+\textbf{Reading the comparison.} Photometric error is fairly flat ($\approx$12.5--14.3) across every backend that produces any valid disparity at all: it mainly distinguishes ``works at all'' from ``does not'', rather than separating quality between working backends. The point-cloud bad:good ratio and resulting $H_s$ are more discriminating: StereoSGBM and tuned StereoBM are the only classical configurations that ever produced a usable point cloud, and even then with a substantially worse bad:good ratio than any of the three learned backends. Tuning matters more between the classical methods themselves than between the classical and learned families: StereoBM's apparent total failure under default parameters (0\% valid, no point cloud at all) turned out to be mostly a parameter-choice artifact, once tuned it reaches 19.2\% valid and does produce a (low-quality) point cloud, so the fair claim is that StereoBM's library defaults do not work on this scene, not that block matching cannot work on water at all. StereoSGBM barely moved between default and tuned parameters, indicating its defaults were already close to its ceiling for this scene. SGM-CUDA improved substantially with tuning (7.1\%$\to$17.0\% valid) but never reached the point where the wave estimator could fit a surface even once; this is plausibly explained by the GPU binding used here exposing no left--right consistency control equivalent to StereoSGBM's, rather than a fundamental SGM limitation. Even after tuning, all three classical methods remain clearly behind the three learned backends on the metric that matters for this application: whether a usable point cloud is produced at all, and how reliably.
+
+Among the learned backends, HITNet has the lowest latency (37~ms) and a markedly better bad:good ratio than the classical methods, consistent with its selection as the pipeline's default. RAFT-Stereo and WAFT-Stereo show near-identical photometric quality and valid fraction (expected, given their closely related architectures), but WAFT-Stereo achieves a better bad:good ratio (zero dropped frames across the entire evaluation segment) and is also the backend whose $H_s$ estimate is most interpretable: with no bad frames contaminating the buffer, its 0.29~m figure is not inflated by residual disparity failures, unlike HITNet (0.79~m, bad:good 0.20) and RAFT-Stereo (0.50~m, bad:good 0.07), which still pass a fraction of marginal frames through the quality gate. The remaining gap between WAFT-Stereo's 0.29~m and the altimeter's time-varying range of $\approx$0.4--0.6~m is consistent with two known geometric effects: the 40~m near-field patch spans only two to three wavelengths, which undersamples the wave field spatially, and the plane fit over an oblique patch partly absorbs long-wavelength elevation as surface tilt rather than residual variance, as quantified in Section~\ref{sec:validation}. Furthermore, the altimeter's 0.4--0.6~m is itself a range over the full recording, not a fixed reference; during the calmer intervals of the $\sim$90~s comparison window the altimeter's own instantaneous estimate falls toward its lower end, narrowing the residual gap further. Both RAFT-Stereo and WAFT-Stereo measured $\approx$114--115~ms median latency in this full-pipeline setting, above the sub-100~ms figure quoted for RAFT-Stereo-style architectures in isolation; this reflects GPU/CPU contention with the rest of the running pipeline (rectification, point-cloud construction, wave estimation) rather than a clean per-model benchmark, and should be read as a pipeline-level latency, not a model-only one.
+
+\textbf{Pros and cons.} Classical methods need no training data and behave predictably, but plateau in quality on this kind of low-texture target regardless of tuning. Even StereoSGBM's global smoothness term cannot recover texture that simply is not in the image. The GPU-accelerated classical matcher buys speed but not a quality improvement over its CPU counterpart. The learned backends generalize better to the textureless/specular case, because they do not rely purely on local photometric matching, at the cost of requiring a GPU, a pretrained checkpoint, and (for the most recent backend) additional software dependencies and attention to mixed-precision support on older GPU architectures.
+
+\subsubsection*{Comparison with a published maritime stereo pipeline}
+
+The open-source WASS pipeline for 3D stereo reconstruction of ocean waves~\cite{bergamasco2017wass} provides a useful point of comparison. WASS also relies on Hirschmüller's semi-global matching~\cite{hirschmuller2008stereo} as its dense-stereo step, supporting the choice of SGM/StereoSGBM as the right classical baseline in this project's comparison rather than an arbitrary pick. WASS estimates its mean sea-plane with RANSAC (randomly sampled 3-point plane hypotheses with inlier counting) followed by weighted least-squares refinement; this project's point-cloud wave estimator deliberately uses an iterative, sigma-clipped least-squares fit instead, because a fixed-band RANSAC inlier criterion would clip wave crests/troughs taller than its band, a difference justified by WASS's tighter, near-fixed-platform geometry, where that effect is less of a concern. WASS also filters disparity-map outliers using a graph built over 3D-point depth continuity within a frame; this project's per-frame quality gate (Section~\ref{sec:validation}) addresses the same underlying problem: spurious points produced by a non-Lambertian water surface, with a different mechanism, dropping whole bad frames rather than pruning individual points/edges within a frame. Finally, WASS's reported sub-centimetre reconstruction accuracy was obtained with a tightly controlled, near-fixed oceanographic platform (short $\approx$2.5~m baseline, steep look-down angle, high frame rate); this project's longer oblique range (a stereo patch spanning roughly 2--99~m of depth) and less specialized rig plausibly explain a meaningfully higher disparity-failure rate than WASS reports, independently of the disparity backend used.

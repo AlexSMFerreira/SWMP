@@ -1,0 +1,9 @@
+\label{sec:future}
+
+\begin{itemize}
+	\item \textbf{Short-term wave-occurrence forecasting.} The original proposal's third phase: predicting near-future wave occurrence from the periodic structure already being extracted, using deterministic, statistical or learning-based methods, was descoped during this internship in favour of consolidating reliable parameter estimation first (Section~\ref{sec:objectives}). With two cross-validated estimators now in place, this is the natural next step.
+	\item \textbf{Validation on a rougher sea state.} All validation in this report was performed on a single, comparatively calm recording. The heave-compensation step that was found unnecessary here, and the disparity-failure rate that is already $\approx$35\% before gating, should both be re-checked on a rougher-sea recording before generalizing the project's conclusions.
+	\item \textbf{Validation on the intended airship platform.} This dataset was recorded from a boat, not the airship the project ultimately targets; the platform-motion assumptions used here (negligible heave, a head-seas Doppler correction) should be revisited once data from the actual WIG platform becomes available.
+	\item \textbf{Validation against ground truth.} The two estimators were cross-validated against each other, but no independent ground truth was available for this dataset. A future test with a wave buoy array or a controlled wave tank would provide a more definitive validation of the pipeline's outputs.
+	\item \textbf{Compilation of the WAFT-Stereo backend.} The WAFT-Stereo backend, which was the best performing disparity backend, was not compiled for the target embedded platform due to time constraints. A future step is to compile it for the Jetson Orin Nano using TensorRT or ONNX in order to improve the pipeline's latency.
+\end{itemize}

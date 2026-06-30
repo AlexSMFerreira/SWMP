@@ -7,12 +7,22 @@ output (pixels), same sky mask, same /stereo/debug/horizon overlay, so
 ros2_pointcloud_node.py works unchanged. Fastest CPU option, weakest quality on
 low-texture water.
 
-Defaults are tuned for the airship use case: ~1 m stereo baseline, medium-long
+Defaults are tuned for the water-surface use case: ~1 m stereo baseline, medium-long
 range over the sea. Disparity and depth are related by  d_px = fx_px * B / Z, so
 with B = 1 m a num_disparities of 128 searches down to Z_min = fx/128 metres
 (e.g. fx≈1500 -> ~12 m), which comfortably covers the expected depth range while
-capping the (BM) search cost. A large block_size and aggressive speckle filtering
-help on the low-texture water surface.
+capping the (BM) search cost.
+
+Key tuning decisions for water:
+  - texture_threshold=0: water has almost no texture; gating on it kills coverage.
+    Speckle filtering + WLS handle spurious matches instead.
+  - pre_filter_type=XSOBEL: edge-response filter handles specular/reflective surfaces
+    better than NORMALIZED_RESPONSE, which is thrown off by local mean shifts.
+  - pre_filter_cap=63: stronger normalisation clamps specular highlights.
+  - speckle_range=2: tight connectivity for a smooth surface (only adjacent disparity
+    values considered the same blob); 32 would merge unrelated regions.
+  - WLS post-filter (use_wls_filter=True): edge-aware gap-filling using the left image's
+    edge structure fills the sparse coverage SBM produces on textureless water.
 """
 
 import rclpy
@@ -48,11 +58,25 @@ class SBMDisparityNode(Node):
         self.declare_parameter('min_disparity',      0)
         self.declare_parameter('num_disparities',    128)   # divisible by 16; Z_min = fx/128 m
         self.declare_parameter('block_size',         21)    # odd; large window for low-texture water
-        self.declare_parameter('texture_threshold',  10)    # keep some low-texture sea points
-        self.declare_parameter('uniqueness_ratio',   15)    # reject ambiguous matches on water
-        self.declare_parameter('speckle_window_size', 200)  # remove larger noise blobs
-        self.declare_parameter('speckle_range',      32)
-        self.declare_parameter('pre_filter_cap',     31)
+        # texture_threshold=0: don't gate on texture — water has almost none; rely on
+        # speckle filtering + WLS to clean up spurious matches instead.
+        self.declare_parameter('texture_threshold',  0)
+        self.declare_parameter('uniqueness_ratio',   15)
+        self.declare_parameter('speckle_window_size', 200)
+        # speckle_range=2: tight connectivity — only treat adjacent disparity values as
+        # the same blob, appropriate for the smooth water surface.
+        self.declare_parameter('speckle_range',      2)
+        self.declare_parameter('disp12_max_diff',    1)     # left-right consistency check
+        # pre_filter_type: XSOBEL (1) handles specular/reflective surfaces better than
+        # NORMALIZED_RESPONSE (0) because it responds to edges rather than local mean.
+        self.declare_parameter('pre_filter_type',    cv2.STEREO_BM_PREFILTER_XSOBEL)
+        self.declare_parameter('pre_filter_size',    9)     # must be odd, 5..255
+        self.declare_parameter('pre_filter_cap',     63)    # stronger normalization for water
+
+        # ── WLS post-filter (edge-aware gap-filling — same as SGBM) ─────────────
+        self.declare_parameter('use_wls_filter',     True)
+        self.declare_parameter('wls_lambda',         8000.0)
+        self.declare_parameter('wls_sigma',          1.5)
 
         # The rectifier now publishes at native camera resolution; downscale here to
         # a working resolution for the matcher (it's by far the dominant cost, and
@@ -84,7 +108,17 @@ class SBMDisparityNode(Node):
         self._matcher.setUniquenessRatio(p('uniqueness_ratio').value)
         self._matcher.setSpeckleWindowSize(p('speckle_window_size').value)
         self._matcher.setSpeckleRange(p('speckle_range').value)
+        self._matcher.setDisp12MaxDiff(p('disp12_max_diff').value)
+        self._matcher.setPreFilterType(p('pre_filter_type').value)
+        self._matcher.setPreFilterSize(p('pre_filter_size').value)
         self._matcher.setPreFilterCap(p('pre_filter_cap').value)
+
+        self._use_wls = p('use_wls_filter').value
+        if self._use_wls:
+            self._right_matcher = cv2.ximgproc.createRightMatcher(self._matcher)
+            self._wls_filter = cv2.ximgproc.createDisparityWLSFilter(matcher_left=self._matcher)
+            self._wls_filter.setLambda(p('wls_lambda').value)
+            self._wls_filter.setSigmaColor(p('wls_sigma').value)
 
         pub_qos = QoSProfile(reliability=ReliabilityPolicy.RELIABLE,    history=HistoryPolicy.KEEP_LAST, depth=5)
         vis_qos = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, history=HistoryPolicy.KEEP_LAST, depth=5)
@@ -131,6 +165,9 @@ class SBMDisparityNode(Node):
         right_gray = cv2.cvtColor(proc_right, cv2.COLOR_BGR2GRAY)
 
         raw = self._matcher.compute(left_gray, right_gray)   # CV_16S, x16
+        if self._use_wls:
+            raw_right = self._right_matcher.compute(right_gray, left_gray)
+            raw = self._wls_filter.filter(raw, left_gray, disparity_map_right=raw_right)
         disp = to_float_disparity(raw, self._min_disp)
         disp = rescale_disparity(disp, (full_w, full_h))
 
@@ -163,6 +200,7 @@ class SBMDisparityNode(Node):
         self.get_logger().info(
             f"SBM disparity | [{source}] | {latency:.1f} ms | "
             f"photo_err={photo_err:.2f} valid={valid_frac:.2%}"
+            + (" [WLS]" if self._use_wls else "")
         )
 
 

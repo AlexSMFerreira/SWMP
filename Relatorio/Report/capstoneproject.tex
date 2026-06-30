@@ -1,8 +1,13 @@
 \documentclass[10pt]{article}
 \usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage[protrusion=true,expansion=true]{microtype}
 \usepackage{url}
 \usepackage{graphicx}
+\usepackage{float}
 \graphicspath{ {./figures/} }
+\hyphenation{Hirsch-muel-ler}
 
 
 
@@ -16,7 +21,7 @@
 
 
 		\vspace{1.0cm}
-		Final Report of the Integrative Project
+		Final Report of the Capstone Project
 
 		\vspace{1.5cm}
 
@@ -39,63 +44,54 @@
 		\textbf{Company/Proposer Supervisor}: Prof. Eduardo Silva \\
 
 \vspace{0.4cm}
-		June 22, 2026
+		June 29, 2026
 
 	\end{center}
 \end{titlepage}
 
+\thispagestyle{empty}
+\clearpage
 
+\begin{abstract}
+This report presents an end-to-end ROS~2 pipeline for sea-surface reconstruction and wave-parameter estimation from a multi-sensor rig -- stereo cameras, laser altimeters, and a GNSS/INS navigation solution -- mounted on a support vessel. The central engineering challenge is stereo matching on the sea surface, which is low-texture, specular, and non-Lambertian: conditions that systematically break classical photometric methods. Six disparity-estimation backends -- three classical, three learned -- are systematically compared under identical pipeline conditions; the results show a clear and consistent quality gap between learned and classical architectures on this target, with the WAFT-Stereo backend achieving zero dropped frames in the downstream wave estimator. Two independent sea-state estimators are implemented and cross-validated without external ground truth: a temporal spectral estimator driven by a single laser altimeter and a spatial estimator derived from the georeferenced stereo point cloud. The two estimators agree on significant wave height ($H_s \approx 0.4$--$0.5$~m) and peak period ($T_p \approx 3.2$~s vs.\ $\approx$3.7~s) to within $\approx$10--13\%. This mutual agreement constitutes the primary validation of the pipeline's wave-parameter outputs in the absence of a wave buoy.
+\end{abstract}
 \thispagestyle{empty}
 \clearpage
 
 \thispagestyle{empty}
 \tableofcontents
 
- \clearpage
+\clearpage
 
 \section{Introduction}
 
+\subsection{Context}
 
+\input{sections/Introduction/Context}
 
-	\subsection{Context}
+\subsection{Related work}
 
-	\begin{itemize}
-    \item Introduce the purpose of the report.
-	\item Present the organizational context in which the project/internship took place (company, institution, research unit, research laboratory, etc.).
-	\item Present the problem addressed and the motivation for the work carried out.
-    \end{itemize}
+\input{sections/Introduction/RelatedWork.tex}
 
-	\input{sections/Introduction/Context}
+\subsection{Objectives and expected results}
 
-	\subsection{Objectives and expected results}
+\input{sections/Introduction/Objectives.tex}
 
-	State the objectives of the work and the expected results.
+\subsection{Report structure}
 
-	\input{sections/Introduction/Objectives.tex}
+\input{sections/Introduction/Structure.tex}
 
-	\subsection{Report structure}
-
-	Explain the structure of the report.
-
-	\input{sections/Introduction/Structure.tex}
-
-\section{Methodology and main activities carried out}
+\section{Methodology and activities carried out}
 
 \subsection{Methodology used}
 
-    Describe the methodology\cite{despa2014comparative} followed (e.g. iterative development with biweekly sprints and weekly follow-up meetings) and the resources used (e.g. GitHub \cite{github}, etc.).
-
-	\input{sections/Methodology/Methodology.tex}
+\input{sections/Methodology/Methodology.tex}
 
 \subsection{Stakeholders, roles and responsibilities}
-
-Identify the project team, stakeholders and other parties with whom there was interaction; in the case of group work, clarify the roles and responsibilities of each group member.
 
 \input{sections/Methodology/Intervenients.tex}
 
 \subsection{Activities carried out}
-
-Describe the activities carried out over time (including relevant events such as presentations, client meetings, etc.) and the respective deliverables, typically using a Gantt chart\cite{gantt} and a summary description of each activity/deliverable.
 
 \input{sections/Methodology/Activities.tex}
 
@@ -103,49 +99,32 @@ Describe the activities carried out over time (including relevant events such as
 
 \subsection{Requirements}
 
-Identify the relevant functional and non-functional requirements and their sources, as well as project constraints.
-
 \input{sections/Development/Requirements.tex}
 
 \subsection{Architecture and technologies}
-
-Architecture and technologies used and their justification, technical diagrams produced, technical difficulties encountered and their resolution, etc.
 
 \input{sections/Development/Arquitecture.tex}
 
 \subsection{Developed solution}
 
-Present the developed solution from the user's perspective, with the help of screenshots.
-
 \input{sections/Development/Solution.tex}
 
 \subsection{Validation}
-
-Description of the validation of the developed solution (e.g. experimental evaluation results, tests performed, feedback from users or experts, etc.).
 
 \input{sections/Development/Validation.tex}
 
 \section{Conclusions}
 
-
-
 \subsection{Results achieved}
- Summarize the results achieved and contributions (with respect to the objectives).
 
- \input{sections/Conclusions/Results.tex}
+\input{sections/Conclusions/Results.tex}
 \subsection{Lessons learned}
- Reflect on the lessons learned (taking into account the learning objectives).
 
- \input{sections/Conclusions/Lessons.tex}
+\input{sections/Conclusions/Lessons.tex}
 \subsection{Future work}
 
- Ideas for improvements and future work.
-
- \input{sections/Conclusions/Future.tex}
+\input{sections/Conclusions/Future.tex}
 \subsection{SDG impact}
-
-If applicable, identify the contribution of the work to the Sustainable Development Goals (SDGs) established by the
-United Nations (https://sdgs.un.org/goals), with a view to a more sustainable and inclusive future.
 
 \input{sections/Conclusions/ODS.tex}
 \bibliographystyle{plain}

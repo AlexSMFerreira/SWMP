@@ -1,19 +1,20 @@
 \babel@toc {english}{}\relax 
-\contentsline {section}{\numberline {1}Introduction}{2}{}%
-\contentsline {subsection}{\numberline {1.1}Context}{2}{}%
-\contentsline {subsection}{\numberline {1.2}Objectives and expected results}{3}{}%
-\contentsline {subsection}{\numberline {1.3}Report structure}{3}{}%
-\contentsline {section}{\numberline {2}Methodology and main activities carried out}{3}{}%
-\contentsline {subsection}{\numberline {2.1}Methodology used}{3}{}%
-\contentsline {subsection}{\numberline {2.2}Stakeholders, roles and responsibilities}{3}{}%
-\contentsline {subsection}{\numberline {2.3}Activities carried out}{3}{}%
-\contentsline {section}{\numberline {3}Solution development}{3}{}%
-\contentsline {subsection}{\numberline {3.1}Requirements}{3}{}%
-\contentsline {subsection}{\numberline {3.2}Architecture and technologies}{4}{}%
-\contentsline {subsection}{\numberline {3.3}Developed solution}{4}{}%
-\contentsline {subsection}{\numberline {3.4}Validation}{4}{}%
-\contentsline {section}{\numberline {4}Conclusions}{4}{}%
-\contentsline {subsection}{\numberline {4.1}Results achieved}{4}{}%
-\contentsline {subsection}{\numberline {4.2}Lessons learned}{4}{}%
-\contentsline {subsection}{\numberline {4.3}Future work}{4}{}%
-\contentsline {subsection}{\numberline {4.4}SDG impact}{4}{}%
+\contentsline {section}{\numberline {1}Introduction}{3}{}%
+\contentsline {subsection}{\numberline {1.1}Context}{3}{}%
+\contentsline {subsection}{\numberline {1.2}Related work}{4}{}%
+\contentsline {subsection}{\numberline {1.3}Objectives and expected results}{5}{}%
+\contentsline {subsection}{\numberline {1.4}Report structure}{6}{}%
+\contentsline {section}{\numberline {2}Methodology and activities carried out}{6}{}%
+\contentsline {subsection}{\numberline {2.1}Methodology used}{6}{}%
+\contentsline {subsection}{\numberline {2.2}Stakeholders, roles and responsibilities}{6}{}%
+\contentsline {subsection}{\numberline {2.3}Activities carried out}{7}{}%
+\contentsline {section}{\numberline {3}Solution development}{8}{}%
+\contentsline {subsection}{\numberline {3.1}Requirements}{8}{}%
+\contentsline {subsection}{\numberline {3.2}Architecture and technologies}{9}{}%
+\contentsline {subsection}{\numberline {3.3}Developed solution}{17}{}%
+\contentsline {subsection}{\numberline {3.4}Validation}{18}{}%
+\contentsline {section}{\numberline {4}Conclusions}{20}{}%
+\contentsline {subsection}{\numberline {4.1}Results achieved}{20}{}%
+\contentsline {subsection}{\numberline {4.2}Lessons learned}{23}{}%
+\contentsline {subsection}{\numberline {4.3}Future work}{24}{}%
+\contentsline {subsection}{\numberline {4.4}SDG impact}{24}{}%

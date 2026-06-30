@@ -1,1 +1,13 @@
-O principal objetivo do estágio é o estudo, desenvolvimento e validação de abordagens de perceção e modelização de ondas oceânicas, baseadas em arquiteturas de fusão multissensoria adaptadas às limitações e requisitos operacionais de plataformas aéreas autónomas de Efeito de Solo (WIG). 
+\label{sec:objectives}
+
+The proposal that originated this internship set three goals: studying and characterizing the sensor configurations available for perceiving the sea surface, developing algorithms to reconstruct the sea-surface geometry and extract periodic wave parameters (height, direction, frequency) using multi-sensor fusion, and investigating the feasibility of short-term wave-occurrence forecasting on top of those parameters, using deterministic, statistical and/or machine-learning methods.
+
+In practice, the work was carried out against recorded ROS~2 bags from a real test on a multi-sensor rig (stereo cameras, laser altimeters, lidar, thermal camera and GNSS/INS) placed on a support vessel. The concrete objectives pursued were:
+
+\begin{itemize}
+	\item Identifying a stereo-matching (disparity estimation) approach that copes with the sea surface's specific imaging challenges (low texture, specularity) as well as the operational requirements (low latency), which turned out to be the main technical challenge of the project.
+	\item Building a working ROS~2 perception pipeline that reconstructs a georeferenced 3D point cloud of the sea surface from the stereo pair, fused with an independent navigation solution for pose and georeferencing.
+	\item Extracting sea-state parameters (significant wave height ($H_s$), peak period ($T_p$) and, where possible, direction) from two independent sensing modalities, a downward-looking laser altimeter and the stereo point cloud, and cross-validating one against the other in the absence of ground truth.
+\end{itemize}
+
+The expected result was a working pipeline together with two independently cross-validated estimators of sea-state parameters, evaluated on real recorded data. Short-term wave-occurrence \emph{forecasting} (objective 3 of the original proposal) was descoped in favour of consolidating reliable parameter \emph{estimation} first; this and other deviations from the original proposal are discussed in Section~\ref{sec:lessons} and in the Future Work section.

@@ -26,6 +26,7 @@ from std_msgs.msg import Float32
 from cv_bridge import CvBridge
 
 import cv2
+import numpy as np
 import time
 
 from stereo_common import (
@@ -70,6 +71,15 @@ class SGMCudaDisparityNode(Node):
         self.declare_parameter('horizon_margin_pct', 0.03)
         self.declare_parameter('debug_horizon',      True)
 
+        # ── WLS post-filter ──────────────────────────────────────────────────────
+        # cv2.ximgproc.createRightMatcher does not accept CUDA matchers, so the
+        # right disparity is computed via the flip trick (swap+flip images, run the
+        # same CUDA matcher, flip+negate the result) and fed to
+        # createDisparityWLSFilterGeneric, which needs no matcher reference.
+        self.declare_parameter('use_wls_filter',     True)
+        self.declare_parameter('wls_lambda',         8000.0)
+        self.declare_parameter('wls_sigma',          1.5)
+
         p = self.get_parameter
         self._bridge = CvBridge()
         self._min_disp = p('min_disparity').value
@@ -90,8 +100,14 @@ class SGMCudaDisparityNode(Node):
             mode=p('mode').value,
         )
         # Reused device buffers (allocated lazily on first frame).
-        self._gpu_left = cv2.cuda_GpuMat()
+        self._gpu_left  = cv2.cuda_GpuMat()
         self._gpu_right = cv2.cuda_GpuMat()
+
+        self._use_wls = p('use_wls_filter').value
+        if self._use_wls:
+            self._wls_filter = cv2.ximgproc.createDisparityWLSFilterGeneric(use_confidence=False)
+            self._wls_filter.setLambda(p('wls_lambda').value)
+            self._wls_filter.setSigmaColor(p('wls_sigma').value)
 
         pub_qos = QoSProfile(reliability=ReliabilityPolicy.RELIABLE,    history=HistoryPolicy.KEEP_LAST, depth=5)
         vis_qos = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, history=HistoryPolicy.KEEP_LAST, depth=5)
@@ -142,8 +158,29 @@ class SGMCudaDisparityNode(Node):
 
         self._gpu_left.upload(left_gray)
         self._gpu_right.upload(right_gray)
-        gpu_disp = self._matcher.compute(self._gpu_left, self._gpu_right)
-        raw = gpu_disp.download()                            # CV_16S, x16
+        raw = self._matcher.compute(self._gpu_left, self._gpu_right).download()  # CV_16S, x16
+
+        if self._use_wls:
+            # Save which pixels the CUDA matcher actually found — WLS with
+            # use_confidence=False smooths through invalid pixels and fills the
+            # entire image, creating phantom geometry in the point cloud.
+            # Restoring the mask afterwards keeps WLS as a pure smoother/refiner
+            # (sub-pixel refinement + noise reduction on valid pixels only).
+            cuda_valid = raw > 0
+
+            # Right disparity via flip trick: mirrors what createRightMatcher does for
+            # CPU matchers. Flip both images, swap them, run the same CUDA matcher,
+            # flip the result back, negate (right disparity convention is negative).
+            left_flip  = cv2.flip(left_gray,  1)
+            right_flip = cv2.flip(right_gray, 1)
+            self._gpu_left.upload(right_flip)
+            self._gpu_right.upload(left_flip)
+            raw_right = cv2.flip(
+                self._matcher.compute(self._gpu_left, self._gpu_right).download(), 1)
+            raw_right = (raw_right.astype(np.int32) * -1).astype(np.int16)
+            raw = self._wls_filter.filter(raw, left_gray, disparity_map_right=raw_right)
+            raw[~cuda_valid] = -16  # reject fill, keep only smoothed valid pixels
+
         disp = to_float_disparity(raw, self._min_disp)
         disp = rescale_disparity(disp, (full_w, full_h))
 
@@ -176,6 +213,7 @@ class SGMCudaDisparityNode(Node):
         self.get_logger().info(
             f"CUDA-SGM disparity | [{source}] | {latency:.1f} ms | "
             f"photo_err={photo_err:.2f} valid={valid_frac:.2%}"
+            + (" [WLS]" if self._use_wls else "")
         )
 
 

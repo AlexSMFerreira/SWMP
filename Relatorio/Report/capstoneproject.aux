@@ -2,32 +2,117 @@
 \providecommand\babel@aux[2]{}
 \@nameuse{bbl@beforestart}
 \babel@aux{english}{}
-\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{2}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}Context}{2}{}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Example of a vehicle operating under the Wing-In-Ground (WIG) effect principle.}}{2}{}\protected@file@percent }
-\newlabel{fig:wig_effect}{{1}{2}}
-\citation{despa2014comparative}
+\citation{rs9121261}
+\citation{toa2020ultrasonic}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}Context}{3}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Example of a vehicle operating under the Wing-In-Ground (WIG) effect principle.}}{3}{}\protected@file@percent }
+\newlabel{fig:wig_effect}{{1}{3}}
+\citation{benetazzo2006offshore}
+\citation{bergamasco2017wass}
+\citation{hirschmuller2008stereo}
+\citation{app12157447}
+\citation{jmse12010197}
+\citation{li2025thermal}
+\citation{hirschmuller2008stereo}
+\citation{DBLP:journals/corr/abs-2007-12140}
+\citation{DBLP:journals/corr/abs-2109-07547}
+\citation{wang2026waftstereowarpingalonefieldtransforms}
+\citation{pierson1964spectral}
+\citation{Hasselmann1973}
+\citation{dean1991water}
+\citation{ichikawa2024seasurface}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.2}Related work}{4}{}\protected@file@percent }
+\citation{naaijen2010real}
+\citation{qi2018predictable}
+\citation{hochreiter1997long}
+\citation{vaswani2017attention}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.3}Objectives and expected results}{5}{}\protected@file@percent }
+\newlabel{sec:objectives}{{1.3}{5}}
 \citation{github}
-\citation{gantt}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.2}Objectives and expected results}{3}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.3}Report structure}{3}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {2}Methodology and main activities carried out}{3}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Methodology used}{3}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Stakeholders, roles and responsibilities}{3}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Activities carried out}{3}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {3}Solution development}{3}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Requirements}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.4}Report structure}{6}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Methodology and activities carried out}{6}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Methodology used}{6}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Stakeholders, roles and responsibilities}{6}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Activities carried out}{7}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Project timeline.}}{7}{}\protected@file@percent }
+\newlabel{tab:activities}{{1}{7}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Solution development}{8}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Requirements}{8}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Architecture and technologies}{9}{}\protected@file@percent }
+\newlabel{sec:architecture}{{3.2}{9}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Pipeline architecture: ROS~2 nodes and the topics connecting them.}}{9}{}\protected@file@percent }
+\newlabel{fig:pipeline-architecture}{{2}{9}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Sensor frame tree. Static transforms are wired at startup; the map~$\leftrightarrow $~base\_link transform is published live by the pose-broadcasting node. The \texttt  {rslidar} transform remains an identity placeholder pending resolution of a clock-domain timestamp mismatch in the lidar recording.}}{9}{}\protected@file@percent }
+\newlabel{fig:tf-frame-tree}{{3}{9}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Typical left-camera frame from the stereo bag. The sea surface is largely textureless with specular highlights, making it an adversarial target for photometric stereo matching.}}{10}{}\protected@file@percent }
+\newlabel{fig:raw-camera}{{4}{10}}
+\citation{app12157447}
+\citation{jmse12010197}
+\citation{li2025thermal}
+\citation{hirschmuller2008stereo}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Sky/horizon masking applied by the shared pre-processing stage. Pixels above the detected horizon line (shown in red) are excluded from disparity estimation and point-cloud reconstruction, preventing sky matches from corrupting the sea-surface output.}}{11}{}\protected@file@percent }
+\newlabel{fig:horizon-detection}{{5}{11}}
+\citation{DBLP:journals/corr/abs-2007-12140}
+\citation{DBLP:journals/corr/abs-2109-07547}
+\citation{wang2026waftstereowarpingalonefieldtransforms}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Disparity-backend comparison on a fixed $\sim $90\,s recorded segment.}}{12}{}\protected@file@percent }
+\newlabel{tab:disparity-comparison}{{2}{12}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces StereoBM (tuned): disparity map (left) and resulting point cloud (right). Large invalid regions reflect block matching's inability to find reliable matches on the textureless sea surface; the point cloud is sparse and noisy.}}{13}{}\protected@file@percent }
+\newlabel{fig:sbm-result}{{6}{13}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces StereoSGBM (tuned): disparity map (left) and resulting point cloud (right). The global smoothness regularisation recovers more surface coverage than StereoBM, producing a denser cloud, though disparity failures remain frequent over specular patches.}}{13}{}\protected@file@percent }
+\newlabel{fig:sgbm-result}{{7}{13}}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces SGM-CUDA (tuned): disparity map (left) and resulting point cloud (right). GPU acceleration reduces latency relative to StereoSGBM but the absence of left--right consistency checking leaves the point cloud too sparse for the wave estimator to fit a surface.}}{14}{}\protected@file@percent }
+\newlabel{fig:sgm-cuda-result}{{8}{14}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces HITNet: disparity map (left) and resulting point cloud (right). The learned backbone recovers substantially more valid disparity over textureless and specular areas, yielding a dense and well-structured sea-surface point cloud.}}{14}{}\protected@file@percent }
+\newlabel{fig:hitnet-result}{{9}{14}}
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces RAFT-Stereo: disparity map (left) and resulting point cloud (right). The iterative correlation-volume approach handles the low-texture sea surface well, with a low bad-frame rate and a dense cloud, at the cost of higher latency than HITNet.}}{15}{}\protected@file@percent }
+\newlabel{fig:raft-result}{{10}{15}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces WAFT-Stereo: disparity map (left) and resulting point cloud (right). The warping-alone field-transform architecture achieves zero dropped frames over the evaluation segment and produces the $H_s$ closest to the altimeter cross-validation reference, at latency comparable to RAFT-Stereo.}}{15}{}\protected@file@percent }
+\newlabel{fig:waft-result}{{11}{15}}
+\citation{bergamasco2017wass}
+\citation{hirschmuller2008stereo}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Developed solution}{17}{}\protected@file@percent }
+\newlabel{sec:solution}{{3.3}{17}}
+\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces RViz visualization of the running pipeline. The 3D viewport (right) shows the georeferenced sea-surface point cloud and the sensor rig wireframe, with the platform's travelled path (green) overlaid in the \texttt  {map} (ENU) frame. The left panel shows live image feeds: the rainbow-coded disparity map, the rectified left camera image, the thermal camera, and the horizon-detection output with the sky-exclusion line marked in red.}}{18}{}\protected@file@percent }
+\newlabel{fig:rviz-screenshot}{{12}{18}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Validation}{18}{}\protected@file@percent }
+\newlabel{sec:validation}{{3.4}{18}}
+\citation{ichikawa2024seasurface}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Conclusions}{20}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Results achieved}{20}{}\protected@file@percent }
+\newlabel{sec:results}{{4.1}{20}}
+\@writefile{lof}{\contentsline {figure}{\numberline {13}{\ignorespaces Altimeter wave-estimation processing pipeline. The band-limiting step (highlighted) was the critical fix: integrating the full spectrum to Nyquist picked up the sensor noise floor and inflated $H_s$ roughly fourfold; restricting to the wave band [0.05--0.5~Hz] recovers the physical estimate.}}{21}{}\protected@file@percent }
+\newlabel{fig:altimeter-pipeline}{{13}{21}}
+\@writefile{lof}{\contentsline {figure}{\numberline {14}{\ignorespaces Per-frame quality gate in the point-cloud wave estimator. Whole-frame disparity failures (affecting $\approx $35\% of frames on the water surface) spread the entire reconstructed patch; the gate drops these before they contaminate the running $H_s$ estimate.}}{22}{}\protected@file@percent }
+\newlabel{fig:bad-frame-gate}{{14}{22}}
+\@writefile{lof}{\contentsline {figure}{\numberline {15}{\ignorespaces Doppler/encounter-frequency correction. The altimeter, riding with the moving platform, measures the encounter period; the stereo point cloud measures the spatial (true) period directly. Applying the deep-water encounter-to-true correction reduces the period disagreement from $\approx $75\% to $\approx $10--13\%.}}{22}{}\protected@file@percent }
+\newlabel{fig:doppler-correction}{{15}{22}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Lessons learned}{23}{}\protected@file@percent }
+\newlabel{sec:lessons}{{4.2}{23}}
 \bibstyle{plain}
 \bibdata{refs}
-\bibcite{despa2014comparative}{1}
-\bibcite{github}{2}
-\bibcite{gantt}{3}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Architecture and technologies}{4}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Developed solution}{4}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Validation}{4}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {4}Conclusions}{4}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Results achieved}{4}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Lessons learned}{4}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Future work}{4}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}SDG impact}{4}{}\protected@file@percent }
-\gdef \@abspage@last{5}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Future work}{24}{}\protected@file@percent }
+\newlabel{sec:future}{{4.3}{24}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}SDG impact}{24}{}\protected@file@percent }
+\bibcite{benetazzo2006offshore}{1}
+\bibcite{bergamasco2017wass}{2}
+\bibcite{dean1991water}{3}
+\bibcite{Hasselmann1973}{4}
+\bibcite{hirschmuller2008stereo}{5}
+\bibcite{hochreiter1997long}{6}
+\bibcite{rs9121261}{7}
+\bibcite{ichikawa2024seasurface}{8}
+\bibcite{github}{9}
+\bibcite{li2025thermal}{10}
+\bibcite{DBLP:journals/corr/abs-2109-07547}{11}
+\bibcite{naaijen2010real}{12}
+\bibcite{pierson1964spectral}{13}
+\bibcite{qi2018predictable}{14}
+\bibcite{jmse12010197}{15}
+\bibcite{app12157447}{16}
+\bibcite{DBLP:journals/corr/abs-2007-12140}{17}
+\bibcite{toa2020ultrasonic}{18}
+\bibcite{vaswani2017attention}{19}
+\bibcite{wang2026waftstereowarpingalonefieldtransforms}{20}
+\gdef \@abspage@last{27}

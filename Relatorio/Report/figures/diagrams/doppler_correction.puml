@@ -1,0 +1,47 @@
+@startuml doppler_correction
+skinparam backgroundColor white
+skinparam componentStyle rectangle
+skinparam ComponentBackgroundColor #EFF6FF
+skinparam ComponentBorderColor #2C5F8A
+skinparam ArrowColor #333333
+skinparam NoteBackgroundColor #FFF8E1
+skinparam NoteBorderColor #B8860B
+skinparam shadowing false
+skinparam defaultFontSize 12
+skinparam padding 5
+
+left to right direction
+
+component "Moving platform\nU ≈ 2.6 m/s (up to 3.8 m/s)\nhead-seas geometry (μ = 180°)" as platform
+
+component "Altimeter\n(temporal)" as alt
+component "Stereo point cloud\n(spatial)" as pc
+
+component "Encounter period\nTp_encounter ≈ 2.1–2.4 s\n//as seen by moving observer//" as enc
+component "True (absolute) period\nTp_true ≈ 3.2 s\n//motion-independent//" as truep
+component "Spatial period\nT ≈ 3.7 s\n//from 2-D FFT + dispersion//" as spatial
+
+platform --> alt : rides with\nplatform
+platform --> pc  : looks down\nthrough platform
+
+alt --> enc  : measures
+pc  --> spatial : measures
+
+enc --> truep : deep-water\nencounter correction\nω_e = ω₀ − (U/g)·ω₀²
+
+note bottom of enc
+  Without correction:
+  altimeter Tp ≈ 2.1 s
+  vs. cloud T ≈ 3.7 s
+  → disagreement ~75 %
+end note
+
+note bottom of truep
+  After correction:
+  Tp_true ≈ 3.2 s
+  vs. cloud T ≈ 3.7 s
+  → agreement ~10–13 %
+end note
+
+truep -[hidden]-> spatial
+@enduml

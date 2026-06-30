@@ -1,20 +1,129 @@
-\begin{thebibliography}{1}
+\begin{thebibliography}{10}
 
-\bibitem{despa2014comparative}
-Mihai~Liviu Despa.
-\newblock Comparative study on software development methodologies.
-\newblock {\em Database Systems Journal}, 5(3):37--56, 2014.
+\bibitem{benetazzo2006offshore}
+Alvise Benetazzo.
+\newblock Offshore stereo measurements of gravity waves.
+\newblock {\em Coastal Engineering}, 53(12):1013--1032, 2006.
+
+\bibitem{bergamasco2017wass}
+Filippo Bergamasco, Andrea Torsello, Mauro Sclavo, Francesco Barbariol, and
+  Alvise Benetazzo.
+\newblock {WASS}: An open-source pipeline for {3D} stereo reconstruction of
+  ocean waves.
+\newblock {\em Computers \& Geosciences}, 107:28--36, 2017.
+
+\bibitem{dean1991water}
+Robert~G. Dean and Robert~A. Dalrymple.
+\newblock {\em Water Wave Mechanics for Engineers and Scientists}, volume~2 of
+  {\em Advanced Series on Ocean Engineering}.
+\newblock World Scientific, 1991.
+
+\bibitem{Hasselmann1973}
+K.~Hasselmann, T.P. Barnett, E.~Bouws, H.~Carlson, D.E. Cartwright, K.~Enke,
+  J.A. Ewing, A.~Gienapp, D.E. Hasselmann, P.~Kruseman, A.~Meerburg,
+  P.~M{\"u}ller, D.J. Olbers, K.~Richter, W.~Sell, and H.~Walden.
+\newblock {Measurements of wind-wave growth and swell decay during the joint
+  North Sea wave project (JONSWAP).}
+\newblock {\em {Erg{\"a}nzungsheft zur Deutschen Hydrographischen Zeitschrift,
+  Reihe A}}, Nr. 12, 1973.
+
+\bibitem{hirschmuller2008stereo}
+Heiko Hirschmüller.
+\newblock Stereo processing by semiglobal matching and mutual information.
+\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  30(2):328--341, 2008.
+
+\bibitem{hochreiter1997long}
+Sepp Hochreiter and Jürgen Schmidhuber.
+\newblock Long short-term memory.
+\newblock {\em Neural Computation}, 9(8):1735--1780, 1997.
+
+\bibitem{rs9121261}
+Weimin Huang, Xinlong Liu, and Eric~W. Gill.
+\newblock Ocean wind and wave measurements using x-band marine radar: A
+  comprehensive review.
+\newblock {\em Remote Sensing}, 9(12), 2017.
+
+\bibitem{ichikawa2024seasurface}
+Kaoru Ichikawa, Jyoushiro Noda, Ryosuke Sakemi, Kei Yufu, Akihiko Morimoto,
+  Hidejiro Onishi, and Tanuspong Pokavanich.
+\newblock Sea surface height measurements using {UAV} altimeters with nadir
+  {LiDAR} or low-cost {GNSS} reflectometry.
+\newblock {\em Remote Sensing}, 16(23):4577, 2024.
 
 \bibitem{github}
 GitHub Inc.
 \newblock Github.
-\newblock \url{https://github.com/}, 2023.
-\newblock [Online; acedido 3 de março de 2023].
+\newblock \url{https://github.com/}, 2026.
+\newblock [Online; accessed June 2026].
 
-\bibitem{gantt}
-wikipedia.
-\newblock Gantt chart.
-\newblock \url{https://en.wikipedia.org/wiki/Gantt_chart}, 2023.
-\newblock [Online; acedido 3 de março de 2023].
+\bibitem{li2025thermal}
+Deyu Li, Longfei Xiao, Handi Wei, Yan Li, and Binghua Zhang.
+\newblock A noncontact technique for wave measurement based on thermal
+  stereography and deep learning.
+\newblock {\em IEEE Transactions on Instrumentation and Measurement}, 74:1--15,
+  2025.
+
+\bibitem{DBLP:journals/corr/abs-2109-07547}
+Lahav Lipson, Zachary Teed, and Jia Deng.
+\newblock Raft-stereo: Multilevel recurrent field transforms for stereo
+  matching.
+\newblock {\em CoRR}, abs/2109.07547, 2021.
+
+\bibitem{naaijen2010real}
+Peter Naaijen and Rene H.~M. Huijsmans.
+\newblock Real time wave forecasting for real time ship motion predictions.
+\newblock In {\em Proceedings of the ASME 29th International Conference on
+  Ocean, Offshore and Arctic Engineering (OMAE)}, 2010.
+
+\bibitem{pierson1964spectral}
+Willard~J. Pierson~Jr. and Lionel Moskowitz.
+\newblock A proposed spectral form for fully developed wind seas based on the
+  similarity theory of s. a. kitaigorodskii.
+\newblock {\em Journal of Geophysical Research (1896-1977)}, 69(24):5181--5190,
+  1964.
+
+\bibitem{qi2018predictable}
+Yusheng Qi, Guangyu Wu, Yuming Liu, and Dick K.~P. Yue.
+\newblock Predictable zone for phase-resolved reconstruction and forecast of
+  irregular waves.
+\newblock {\em Wave Motion}, 77:195--213, 2018.
+
+\bibitem{jmse12010197}
+Yifan Shang, Wanneng Yu, Guangmiao Zeng, Huihui Li, and Yuegao Wu.
+\newblock Stereoyolo: A stereo vision-based method for maritime object
+  recognition and localization.
+\newblock {\em Journal of Marine Science and Engineering}, 12(1), 2024.
+
+\bibitem{app12157447}
+Hanyu Sun, Guoqing Wu, Xueliang Wang, Tao Zhang, Pu~Zhang, Wei Chen, and
+  Quanhua Zhu.
+\newblock Research on a measurement method for the ocean wave field based on
+  stereo vision.
+\newblock {\em Applied Sciences}, 12(15), 2022.
+
+\bibitem{DBLP:journals/corr/abs-2007-12140}
+Vladimir Tankovich, Christian H{\"{a}}ne, Sean~Ryan Fanello, Yinda Zhang,
+  Shahram Izadi, and Sofien Bouaziz.
+\newblock Hitnet: Hierarchical iterative tile refinement network for real-time
+  stereo matching.
+\newblock {\em CoRR}, abs/2007.12140, 2020.
+
+\bibitem{toa2020ultrasonic}
+Mubina Toa and Akeem Whitehead.
+\newblock Ultrasonic sensing basics.
+\newblock {\em Dallas: Texas Instruments}, pages 53--75, 2020.
+
+\bibitem{vaswani2017attention}
+Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones,
+  Aidan~N. Gomez, Łukasz Kaiser, and Illia Polosukhin.
+\newblock Attention is all you need.
+\newblock In {\em Advances in Neural Information Processing Systems},
+  volume~30, 2017.
+
+\bibitem{wang2026waftstereowarpingalonefieldtransforms}
+Yihan Wang and Jia Deng.
+\newblock Waft-stereo: Warping-alone field transforms for stereo matching,
+  2026.
 
 \end{thebibliography}

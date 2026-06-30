@@ -1,0 +1,41 @@
+@startuml tf_frame_tree
+skinparam backgroundColor white
+skinparam componentStyle rectangle
+skinparam ComponentBackgroundColor #EFF6FF
+skinparam ComponentBorderColor #2C5F8A
+skinparam ArrowColor #333333
+skinparam NoteBackgroundColor #FFF8E1
+skinparam NoteBorderColor #B8860B
+skinparam shadowing false
+skinparam defaultFontSize 12
+skinparam padding 5
+
+top to bottom direction
+
+component "**map**\n(ENU world frame,\nfixed geodetic datum)" as map
+
+component "**base_link**\n(platform body)" as base
+
+component "**camera_left_rect**\ntranslation: (0.045, 0.515, −0.005) m\nrotation: identity\n//cloud already in FLU — no double-rotate//" as caml
+
+component "**camera_right_rect**\n(from stereo calibration,\nbaked into CameraInfo)" as camr
+
+component "**altimeter_left**\ntranslation: (0, +0.455, 0) m\nrotation: +90° about Y\n(REP 117: range along +X → down)" as altl
+
+component "**altimeter_right**\ntranslation: (0, −0.455, 0) m\nrotation: +90° about Y" as altr
+
+component "**altimeter_lightware**\ntranslation: (0, 0, 0) m\nrotation: +90° about Y" as altlw
+
+component "**rslidar**\n(identity placeholder —\n/rslidar_points clock-domain\nbug not yet fixed)" as lidar
+
+map  --> base   : live TF\nPoseBroadcasterNode\n(/episea/nav/lla → pymap3d → ENU)
+
+base --> caml   : static TF\n(start_pipeline.sh)
+caml --> camr   : static TF\n(ros2_stereo_rectifier.py)
+
+base --> altl   : static TF\n(ros2_altimeter_publisher.py)
+base --> altr   : static TF
+base --> altlw  : static TF
+
+base --> lidar  : static TF\n(identity — placeholder)
+@enduml

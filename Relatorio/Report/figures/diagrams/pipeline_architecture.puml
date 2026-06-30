@@ -1,0 +1,41 @@
+@startuml pipeline_architecture
+skinparam backgroundColor white
+skinparam componentStyle rectangle
+skinparam ArrowColor #333333
+skinparam ComponentBackgroundColor #EFF6FF
+skinparam ComponentBorderColor #2C5F8A
+skinparam shadowing false
+skinparam defaultFontSize 13
+skinparam padding 4
+left to right direction
+
+component "Stereo bag\n(left/right images)" as bag
+component "Nav bag\n(/episea/nav/*)" as navbag
+component "Altimeters\n(rfbeam L/R, Lightware)" as altraw
+
+component "RectifyNode" as rectify
+component "DisparityNode\n(HITNet / RAFT-Stereo /\nWAFT-Stereo / SGBM /\nSBM / SGM-CUDA)" as disparity
+component "PointCloudNode" as pointcloud
+component "PoseBroadcasterNode" as pose
+component "AltimeterPublisherNode" as altpub
+
+component "AltimeterWavesNode" as altwaves
+component "PointCloudWavesNode" as pcwaves
+component "/waves/pointcloud\nHs, Hmax, peak\nwavelength/period" as pcout
+component "/waves/altimeter\nHs, Hmax, Tp, Tm01,\nTm02, f_peak" as altout
+
+bag --> rectify : raw stereo images
+rectify --> disparity : rectified L/R\n+ CameraInfo/Q
+disparity --> pointcloud : disparity map
+navbag --> pose : /episea/nav/lla
+pose --> pointcloud : map<->base_link TF
+pose --> altpub : map<->base_link TF
+altraw --> altpub : raw range/height
+pointcloud --> pcwaves : /stereo/points
+altpub --> altwaves : /airship/{left,right}/altimeter/height,\n/airship/lightware/...
+pose --> altwaves : nav speed/attitude\n(Doppler correction)
+
+pcwaves --> pcout
+altwaves --> altout
+
+@enduml

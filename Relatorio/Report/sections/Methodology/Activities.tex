@@ -1,0 +1,28 @@
+The internship followed the five phases of the original work plan (literature review, sensor characterization, estimation-algorithm development, wave modelling/prediction, validation and documentation). The work is summarized as an ordered sequence of milestones in Table~\ref{tab:activities}.
+
+\begin{table}[H]
+	\centering
+	\caption{Project timeline.}
+	\label{tab:activities}
+	\small
+	\begin{tabular}{@{}cp{0.82\textwidth}@{}}
+		\textbf{Week} & \textbf{Milestone} \\
+		\hline
+		1-2 & Literature review for sensor selection and wave modelling. ROS~2 setup. \\
+		3 & Incorporated feedback from the team on the literature review. \\
+		4 & Sensor-fusion literature review. \\
+		5 & Began hands-on ROS~2 learning and early disparity/point-cloud experiments on a provided drone-flight dataset. \\
+		6 & Early disparity/point-cloud attempts had limited success; switched to validating the pipeline on a simpler static-camera case first, with collected camera calibration data. \\
+		7-8 & Tested multiple disparity backends and tuned their parameters. Good results on the calibration dataset, which was recorded inside the lab. \\
+		9 & Additional disparity backends added and compared (classical and machine-learning based). Only decent results achieved were on HitNet and RAFT-Stereo.\\
+		10 & Single command pipeline start; Pointcloud roll/orientation correction via horizon line detection. \\
+		11 & New disparity backend tested with better results (WAFT-Stereo);The team supplied the calibrated navigation bags, unblocking pose work. \\
+		12 & Rig URDF geometry obtained; WAFT-Stereo backend integrated in the pipelineand tuned ($\sim$150\,ms/frame), outperforming HITNet. \\
+		12--13 & Altimeter wave-estimation node creation and tuning (band-limiting fix); point-cloud bad-frame gate added. \\
+		13 & Point-cloud wave estimator reconciled with the altimeter estimator (range filter + median aggregation). \\
+		14 & Doppler/encounter-frequency correction resolved the wave period disagreement between estimators. \\
+		15 & Final disparity-backend comparison campaign (six backends, tuned vs.\ default); validation and report writing. \\
+	\end{tabular}
+\end{table}
+
+As anticipated in the project plan, the search for a disparity-estimation backend that performs adequately on the sea surface was not a single milestone but a recurring thread throughout the project, beginning with the first early experiments and still being actively revisited in the final comparison campaign.

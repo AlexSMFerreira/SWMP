@@ -1,0 +1,49 @@
+@startuml bad_frame_gate
+skinparam backgroundColor white
+skinparam activityBackgroundColor #EFF6FF
+skinparam activityBorderColor #2C5F8A
+skinparam activityArrowColor #333333
+skinparam activityDiamondBackgroundColor #FFF8E1
+skinparam activityDiamondBorderColor #B8860B
+skinparam shadowing false
+skinparam defaultFontSize 12
+skinparam padding 4
+
+start
+:receive /stereo/points frame;
+
+:transform cloud to map frame\n(tf2_sensor_msgs);
+
+:range filter\n(discard points beyond max_range = 40 m\nfrom camera origin);
+
+:iterative sigma-clipped\nleast-squares plane fit\n(rejects outlier points within the frame);
+
+:compute residual std;
+://frame Hs// = 4 · std;
+
+if (//frame Hs// > max_frame_hs\n(default 1.0 m)?) then (bad frame)
+  note right
+    ~35 % of frames on water:
+    entire patch spread out,
+    not just stray points.
+    No within-frame trim helps.
+  end note
+  :discard frame;
+  :n_bad_dropped++;
+else (good frame)
+  :add residuals to rolling buffer;
+
+  fork
+    :per-frame //Hmax//\n(percentile-trimmed\ncrest-to-trough);
+  fork again
+    :2-D FFT of gridded\nelevation field;
+    :peak wavelength λ,\npeak period T\n(deep-water dispersion);
+  end fork
+
+  :report **medians** over buffer\n(//Hs//, λ, T, surface tilt)\n+ max //Hmax//;
+
+  :publish /waves/pointcloud;
+endif
+
+stop
+@enduml

@@ -42,6 +42,7 @@ plane normal (hence Hs and the in-plane wavelength) is physically meaningful.
 """
 
 import math
+import time
 from collections import deque
 
 import numpy as np
@@ -96,7 +97,7 @@ class PointCloudWavesNode(Node):
         self.declare_parameter('grid_res', 0.5)          # m, 2-D FFT grid cell
         self.declare_parameter('max_grid_cells', 200000) # guard against huge grids
         self.declare_parameter('tf_timeout_s', 0.1)
-        self.declare_parameter('buffer_frames', 30)
+        self.declare_parameter('buffer_frames', 1)
         self.declare_parameter('report_period_s', 5.0)
         self.declare_parameter('min_process_interval_s', 0.3)  # throttle heavy per-frame work
         self.declare_parameter('gravity', 9.81)
@@ -149,6 +150,7 @@ class PointCloudWavesNode(Node):
         self._pub_hmax = self.create_publisher(Float32, '/waves/pointcloud/max_wave_height', 10)
         self._pub_lam = self.create_publisher(Float32, '/waves/pointcloud/peak_wavelength', 10)
         self._pub_tp = self.create_publisher(Float32, '/waves/pointcloud/peak_period', 10)
+        self._pub_latency = self.create_publisher(Float32, '/waves/pointcloud/latency_ms', 10)
 
         self.create_timer(float(p('report_period_s').value), self._report)
         self.get_logger().info(
@@ -165,6 +167,8 @@ class PointCloudWavesNode(Node):
             if (now - self._last_proc).nanoseconds * 1e-9 < self._min_interval:
                 return
         self._last_proc = now
+
+        t0 = time.perf_counter()
 
         tf = self._lookup_tf(msg)
         if tf is None:
@@ -210,6 +214,9 @@ class PointCloudWavesNode(Node):
         lam = self._peak_wavelength(P_in, residual, nrm)
         tp = wc.deepwater_period(lam, self._g)
 
+        latency_ms = (time.perf_counter() - t0) * 1000.0
+        self._pub_latency.publish(Float32(data=latency_ms))
+
         if math.isfinite(hs):
             self._hs.append(hs)
         if math.isfinite(hmax):
@@ -218,6 +225,7 @@ class PointCloudWavesNode(Node):
         if math.isfinite(lam):
             self._lam.append(lam)
             self._tp.append(tp)
+        self._report()
 
     def _lookup_tf(self, msg: PointCloud2):
         """Transform map ← cloud frame, at the cloud stamp if available else latest.
@@ -341,7 +349,8 @@ class PointCloudWavesNode(Node):
     @staticmethod
     def _stat(dq):
         """Central value = MEDIAN (robust to the occasional residual bad frame, so the
-        quality gate's removal of high frames no longer biases it), spread = std."""
+        quality gate's removal of high frames no longer biases it), spread = std.
+        With buffer_frames=1 (per-frame mode) this is just the latest value."""
         if not dq:
             return float('nan'), float('nan')
         a = np.array(dq, dtype=float)
@@ -393,7 +402,8 @@ class PointCloudWavesNode(Node):
         self.get_logger().info(
             f'[{len(self._hs):2d} frames, {self._dropped} bad dropped] '
             f'Hs(med)={f(hs_m)}±{f(hs_s)} m  Hmax={f(hmax)} m  '
-            f'λ(med)={f(lam_m)}±{f(lam_s)} m  T={f(tp_m)} s  tilt={f(tilt_m)}°'
+            f'λ(med)={f(lam_m)}±{f(lam_s)} m  T={f(tp_m)} s  tilt={f(tilt_m)}°',
+            throttle_duration_sec=2.0,
         )
         self._dropped = 0
 

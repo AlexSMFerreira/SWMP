@@ -62,6 +62,7 @@ The point-cloud node does not produce direction either — see ros2_pointcloud_w
 """
 
 import math
+import time
 from collections import deque
 
 import numpy as np
@@ -196,6 +197,7 @@ class AltimeterWavesNode(Node):
         self._pub_tp = self.create_publisher(Float32, '/waves/altimeter/peak_period', 10)
         self._pub_tm = self.create_publisher(Float32, '/waves/altimeter/mean_period', 10)
         self._pub_fp = self.create_publisher(Float32, '/waves/altimeter/peak_frequency', 10)
+        self._pub_latency = self.create_publisher(Float32, '/waves/altimeter/latency_ms', 10)
 
         self.create_timer(float(p('report_period_s').value), self._analyse)
         self.get_logger().info(
@@ -322,6 +324,7 @@ class AltimeterWavesNode(Node):
     # ── analysis ──────────────────────────────────────────────────────────────────
 
     def _analyse(self):
+        t0 = time.perf_counter()
         if len(self._buf) < 8:
             self.get_logger().info('… waiting for altimeter + nav data …')
             return
@@ -376,7 +379,8 @@ class AltimeterWavesNode(Node):
                 prm['Tp'] = 1.0 / f_true
                 prm['f_peak'] = f_true
 
-        self._publish(prm, hs_zc, hmax, n, tp_enc, mu_used, off_axis, dir_coh)
+        latency_ms = (time.perf_counter() - t0) * 1000.0
+        self._publish(prm, hs_zc, hmax, n, tp_enc, mu_used, off_axis, dir_coh, latency_ms)
 
         def f(x):
             return f'{x:.3f}' if (x is not None and math.isfinite(x)) else 'nan'
@@ -384,10 +388,11 @@ class AltimeterWavesNode(Node):
         self.get_logger().info(
             f'[{n:4d} samp, {span:.0f}s] Hs={f(prm["Hs"])} m  Hmax={f(hmax)} m  '
             f'Tp={f(prm["Tp"])} s (enc {f(tp_enc)})  Tm02={f(prm["Tm02"])} s  '
-            f'U={f(spd)} m/s  off-axis={f(off_axis)}° (coh {f(dir_coh)})  Hs_zc={f(hs_zc)} m'
+            f'U={f(spd)} m/s  off-axis={f(off_axis)}° (coh {f(dir_coh)})  '
+            f'Hs_zc={f(hs_zc)} m  latency={latency_ms:.1f} ms'
         )
 
-    def _publish(self, prm, hs_zc, hmax, n, tp_enc, mu_used, off_axis, dir_coh):
+    def _publish(self, prm, hs_zc, hmax, n, tp_enc, mu_used, off_axis, dir_coh, latency_ms=float('nan')):
         nan = float('nan')
         scalars = ((self._pub_hs, prm.get('Hs', nan)), (self._pub_tp, prm.get('Tp', nan)),
                    (self._pub_tm, prm.get('Tm01', nan)), (self._pub_fp, prm.get('f_peak', nan)),
@@ -396,6 +401,7 @@ class AltimeterWavesNode(Node):
             m = Float32()
             m.data = float(v) if v is not None and math.isfinite(v) else nan
             pub.publish(m)
+        self._pub_latency.publish(Float32(data=float(latency_ms)))
 
         arr = DiagnosticArray()
         arr.header.stamp = self.get_clock().now().to_msg()

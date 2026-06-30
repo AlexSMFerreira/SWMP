@@ -1,0 +1,62 @@
+@startuml altimeter_wave_pipeline
+skinparam backgroundColor white
+skinparam activityBackgroundColor #EFF6FF
+skinparam activityBorderColor #2C5F8A
+skinparam activityArrowColor #333333
+skinparam activityDiamondBackgroundColor #FFF8E1
+skinparam activityDiamondBorderColor #B8860B
+skinparam shadowing false
+skinparam defaultFontSize 12
+skinparam padding 4
+
+start
+:raw altimeter range\n(rfbeam left / right, or Lightware);
+
+:tilt correction\n//η = range · cos(roll) · cos(pitch)//\n(roll, pitch from /episea/nav/euler);
+
+:linear detrend\n(remove slow platform drift);
+
+:resample to 10 Hz;
+
+:Welch PSD\n(overlapping windowed segments);
+
+note right
+  **Without band-limiting:**
+  noise floor flat to 2.5 Hz
+  → argmax picks noise peak
+  → //Hs// ≈ 2.3 m (impossible)
+end note
+
+:band-limit to [0.05 – 0.5] Hz\n(wave band only);
+
+note right
+  **After band-limiting:**
+  real wave peak at ~ 0.42 Hz
+  → //Hs// ≈ 0.4–0.6 m (physical)
+end note
+
+fork
+  :spectral moments\n//m0, m1, m2//;
+  fork
+    ://Hs// = 4√//m//₀;
+  fork again
+    ://Tp// = 1 / //f//peak;
+    ://Tm//₀₁ = //m//₀ / //m//₁;
+    ://Tm//₀₂ = √(//m//₀ / //m//₂);
+  end fork
+fork again
+  :zero-crossing analysis;
+  ://Hmax// (largest crest-to-trough);
+end fork
+
+if (doppler_correct enabled?) then (yes)
+  ://ω//ₑ = //ω//₀ − (//U///g)·//ω//₀²\n(head-seas, μ = 180°);
+  :Tp_true from corrected //f//peak\n(Tp_encounter also kept);
+else (no)
+  :Tp = Tp_encounter\n(uncorrected);
+endif
+
+:publish /waves/altimeter\n(Hs, Hmax, Tp, Tm01, Tm02, f_peak);
+
+stop
+@enduml

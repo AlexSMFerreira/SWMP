@@ -116,6 +116,14 @@ class PoseBroadcasterNode(Node):
         self.declare_parameter('datum_lat', float('nan'))
         self.declare_parameter('datum_lon', float('nan'))
         self.declare_parameter('datum_alt', float('nan'))
+        # When True, pin the published TF/pose to X=0, Y=0 so the airship stays centred
+        # in RViz while still rolling, pitching, yawing and moving in Z. The wave surface
+        # cloud (produced by ros2_pointcloud_waves) is transformed through TF, so it also
+        # stays centred — the result is a fixed wave plane with the platform moving above
+        # it rather than the platform drifting across the map. Wave parameter computations
+        # are unaffected (plane residuals are translation-invariant). Set False to restore
+        # full ENU track behaviour.
+        self.declare_parameter('viz_fixed_xy', True)
 
         p = self.get_parameter
         self._map_frame = p('map_frame').value
@@ -125,6 +133,7 @@ class PoseBroadcasterNode(Node):
         self._convert_ned = (p('nav_orientation').value.lower() == 'ned')
         self._yaw_offset_deg = p('yaw_offset_deg').value
         self._q_yaw = yaw_quat(self._yaw_offset_deg) if self._yaw_offset_deg else None
+        self._viz_fixed_xy = bool(p('viz_fixed_xy').value)
 
         # Recent ENU positions for the velocity-heading estimate, and the last good heading
         # quaternion (held while the airship is momentarily stationary).
@@ -158,8 +167,12 @@ class PoseBroadcasterNode(Node):
         # ── PATH PUBLISHER ────────────────────────────────────────────────────────────
         # Accumulates the ENU poses into a nav_msgs/Path so RViz draws the airship track.
         self._path_max = p('path_max_poses').value
-        self._path = Path()
-        self._path.header.frame_id = self._map_frame
+        # Raw ENU history — (east, north, up, qx, qy, qz, qw, stamp) tuples. The Path
+        # message is rebuilt from this every update so that in viz_fixed_xy mode each
+        # point can be expressed relative to the current position, keeping the path head
+        # glued to the model while older points trail away in the correct direction.
+        maxlen = self._path_max if self._path_max > 0 else None
+        self._path_history = deque(maxlen=maxlen)
         self._pub_path = self.create_publisher(Path, p('path_topic').value, 10)
 
         # ── SUBSCRIBER ──────────────────────────────────────────────────────────────
@@ -275,6 +288,12 @@ class PoseBroadcasterNode(Node):
                     Rotation.from_quat(self._q_yaw) * Rotation.from_quat([qx, qy, qz, qw])
                 ).as_quat()
 
+        # In fixed-XY mode pin the horizontal position to the map origin so the airship
+        # model stays centred in RViz (rolls/pitches/yaws and bobs in Z, wave surface
+        # stays below it) rather than drifting across the map.
+        tx = 0.0 if self._viz_fixed_xy else east
+        ty = 0.0 if self._viz_fixed_xy else north
+
         t = TransformStamped()
         # Stamp from the (loop-unwrapped) nav header so TF lookups line up with sensor
         # timestamps and stay strictly increasing across bag --loop restarts — see the
@@ -282,8 +301,8 @@ class PoseBroadcasterNode(Node):
         t.header.stamp = published_stamp
         t.header.frame_id = self._map_frame
         t.child_frame_id = self._base_frame
-        t.transform.translation.x = east
-        t.transform.translation.y = north
+        t.transform.translation.x = tx
+        t.transform.translation.y = ty
         t.transform.translation.z = up
         t.transform.rotation.x = qx
         t.transform.rotation.y = qy
@@ -296,8 +315,8 @@ class PoseBroadcasterNode(Node):
         pose = PoseStamped()
         pose.header.stamp = published_stamp
         pose.header.frame_id = self._map_frame
-        pose.pose.position.x = east
-        pose.pose.position.y = north
+        pose.pose.position.x = tx
+        pose.pose.position.y = ty
         pose.pose.position.z = up
         pose.pose.orientation.x = qx
         pose.pose.orientation.y = qy
@@ -305,12 +324,27 @@ class PoseBroadcasterNode(Node):
         pose.pose.orientation.w = qw
         self._pub_pose.publish(pose)
 
-        # Append to the trajectory and republish the Path (ENU track in the map frame).
-        self._path.poses.append(pose)
-        if self._path_max > 0 and len(self._path.poses) > self._path_max:
-            self._path.poses = self._path.poses[-self._path_max:]
-        self._path.header.stamp = published_stamp
-        self._pub_path.publish(self._path)
+        # Accumulate raw ENU history, then rebuild the Path relative to the current
+        # position so that in viz_fixed_xy mode the most recent point is always at the
+        # model's map location (tx, ty) and older points trail away correctly.
+        self._path_history.append((east, north, up, qx, qy, qz, qw, published_stamp))
+
+        path_msg = Path()
+        path_msg.header.stamp = published_stamp
+        path_msg.header.frame_id = self._map_frame
+        for e, n, u, qx_, qy_, qz_, qw_, stamp_ in self._path_history:
+            pp = PoseStamped()
+            pp.header.stamp = stamp_
+            pp.header.frame_id = self._map_frame
+            pp.pose.position.x = tx + (e - east)
+            pp.pose.position.y = ty + (n - north)
+            pp.pose.position.z = u
+            pp.pose.orientation.x = qx_
+            pp.pose.orientation.y = qy_
+            pp.pose.orientation.z = qz_
+            pp.pose.orientation.w = qw_
+            path_msg.poses.append(pp)
+        self._pub_path.publish(path_msg)
 
         #if not self._logged_first:
         #    self._logged_first = True

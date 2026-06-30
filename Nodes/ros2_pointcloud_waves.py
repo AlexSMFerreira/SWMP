@@ -31,6 +31,9 @@ plane normal (hence Hs and the in-plane wavelength) is physically meaningful.
   /waves/pointcloud/max_wave_height       std_msgs/Float32   Hmax (m), worst crest-to-trough in buffer
   /waves/pointcloud/peak_wavelength       std_msgs/Float32   λ (m)
   /waves/pointcloud/peak_period           std_msgs/Float32   T (s)
+  /waves/pointcloud/surface               sensor_msgs/PointCloud2
+                                          plane-fit inliers in map frame; fields x,y,z + elevation
+                                          (signed residual, m above/below the mean surface plane)
 
 ── Caveats (see CLAUDE.md / WAVE_PARAMETERS_PLAN.md) ─────────────────────────────────────
   * Hs (variance) is robust to frame placeholders — it depends only on the cloud's internal
@@ -52,7 +55,7 @@ from rclpy.node import Node
 from rclpy.time import Time
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 
-from sensor_msgs.msg import PointCloud2
+from sensor_msgs.msg import PointCloud2, PointField
 from std_msgs.msg import Float32
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 from sensor_msgs_py import point_cloud2
@@ -93,7 +96,7 @@ class PointCloudWavesNode(Node):
         # cloud spans ~2-99 m but stereo depth error grows ~quadratically — far points are
         # unreliable and bias Hs. Restricting to the accurate near field makes Hs honest
         # (see "Point-cloud Hs: range filter + median (2026-06-22)" in CLAUDE.md). 0 = off.
-        self.declare_parameter('max_range', 40.0)
+        self.declare_parameter('max_range', 100.0)
         self.declare_parameter('grid_res', 0.5)          # m, 2-D FFT grid cell
         self.declare_parameter('max_grid_cells', 200000) # guard against huge grids
         self.declare_parameter('tf_timeout_s', 0.1)
@@ -111,6 +114,10 @@ class PointCloudWavesNode(Node):
         # Scripts/pointcloud_residual_diag.py). Such frames are dropped so they can't
         # corrupt Hs/Hmax/λ. Raise for genuinely rougher seas. 0 disables the gate.
         self.declare_parameter('max_frame_hs', 1.0)
+        # Publish the plane-fit inlier cloud on /waves/pointcloud/surface. Each point
+        # carries an 'elevation' field = signed residual (m above/below the mean plane),
+        # useful for colorising the wave surface in RViz. Set false to save bandwidth.
+        self.declare_parameter('publish_surface', True)
 
         p = self.get_parameter
         self._map_frame = p('map_frame').value
@@ -126,6 +133,7 @@ class PointCloudWavesNode(Node):
         self._g = float(p('gravity').value)
         self._hmax_pct = float(p('hmax_percentile').value)
         self._max_frame_hs = float(p('max_frame_hs').value)
+        self._publish_surface = bool(p('publish_surface').value)
         self._dropped = 0          # bad-disparity frames rejected since last report
         self._rng = np.random.default_rng(0)
 
@@ -151,6 +159,7 @@ class PointCloudWavesNode(Node):
         self._pub_lam = self.create_publisher(Float32, '/waves/pointcloud/peak_wavelength', 10)
         self._pub_tp = self.create_publisher(Float32, '/waves/pointcloud/peak_period', 10)
         self._pub_latency = self.create_publisher(Float32, '/waves/pointcloud/latency_ms', 10)
+        self._pub_surface = self.create_publisher(PointCloud2, '/waves/pointcloud/surface', 10)
 
         self.create_timer(float(p('report_period_s').value), self._report)
         self.get_logger().info(
@@ -213,6 +222,9 @@ class PointCloudWavesNode(Node):
         tilt = math.degrees(math.acos(min(1.0, abs(float(nrm[2])))))
         lam = self._peak_wavelength(P_in, residual, nrm)
         tp = wc.deepwater_period(lam, self._g)
+
+        if self._publish_surface:
+            self._publish_surface_cloud(P_in, residual, cloud_map.header)
 
         latency_ms = (time.perf_counter() - t0) * 1000.0
         self._pub_latency.publish(Float32(data=latency_ms))
@@ -284,6 +296,40 @@ class PointCloudWavesNode(Node):
         if nrm[2] < 0.0:        # orient up
             nrm, d = -nrm, -d
         return nrm, float(d), idx
+
+    # x,y,z (float32) + elevation (float32, signed residual in metres above/below mean plane)
+    _SURFACE_FIELDS = [
+        PointField(name='x',         offset=0,  datatype=PointField.FLOAT32, count=1),
+        PointField(name='y',         offset=4,  datatype=PointField.FLOAT32, count=1),
+        PointField(name='z',         offset=8,  datatype=PointField.FLOAT32, count=1),
+        PointField(name='elevation', offset=12, datatype=PointField.FLOAT32, count=1),
+    ]
+    _SURFACE_POINT_STEP = 16  # 4 × float32
+
+    def _publish_surface_cloud(self, P_in: np.ndarray, residual: np.ndarray, header) -> None:
+        """Pack plane-fit inliers into a PointCloud2 pinned to the z=0 plane.
+
+        x, y are taken from the map-frame point positions (which are centred at the map
+        origin because ros2_pose_broadcaster pins base_link to XY=0).  z is the signed
+        plane residual (elevation above/below the mean surface), so every point sits near
+        z=0 with wave crests/troughs as the only Z variation.  The separate `elevation`
+        field carries the same value for use with named-field colourizers in RViz."""
+        data = np.empty((len(P_in), 4), dtype=np.float32)
+        data[:, :2] = P_in[:, :2].astype(np.float32)   # x, y in map frame
+        data[:, 2]  = residual.astype(np.float32)        # z = wave elevation
+        data[:, 3]  = residual.astype(np.float32)        # elevation field (same)
+
+        msg = PointCloud2()
+        msg.header = header
+        msg.height = 1
+        msg.width = len(P_in)
+        msg.fields = self._SURFACE_FIELDS
+        msg.is_bigendian = False
+        msg.point_step = self._SURFACE_POINT_STEP
+        msg.row_step = self._SURFACE_POINT_STEP * len(P_in)
+        msg.is_dense = True
+        msg.data = data.tobytes()
+        self._pub_surface.publish(msg)
 
     def _peak_wavelength(self, P_in, residual, nrm):
         """Dominant wavelength (m) = 2π/|k| at the peak of a 2-D FFT of the gridded

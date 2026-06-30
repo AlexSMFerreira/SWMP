@@ -124,10 +124,15 @@ class AltimeterPublisherNode(Node):
 
     # ── helpers ──────────────────────────────────────────────────────────────
 
-    @staticmethod
-    def _base_range(frame_id: str, stamp) -> Range:
+    def _base_range(self, frame_id: str) -> Range:
+        # Stamp with the current sim clock, not the raw bag sensor stamp. The pose
+        # broadcaster unwraps nav timestamps to stay monotonic across bag --loop
+        # restarts, so the TF buffer's map→base_link entries are always near "now".
+        # Using the raw bag stamp would cause the TF lookup (map→altimeter_*) to fail
+        # once the unwrapped clock has moved past the sensor's original timestamp,
+        # making the range cones freeze or detach from the model.
         msg = Range()
-        msg.header.stamp = stamp
+        msg.header.stamp = self.get_clock().now().to_msg()
         msg.header.frame_id = frame_id
         msg.radiation_type = Range.INFRARED
         msg.field_of_view = 0.01          # ~0.6° half-angle — laser beam
@@ -138,17 +143,17 @@ class AltimeterPublisherNode(Node):
     # ── callbacks ────────────────────────────────────────────────────────────
 
     def _cb_left(self, msg: PoseStamped):
-        r = self._base_range('altimeter_left', msg.header.stamp)
+        r = self._base_range('altimeter_left')
         r.range = float(msg.pose.position.x)   # AGL in metres; position.y is a magnitude value
         self._pub_left.publish(r)
 
     def _cb_right(self, msg: PoseStamped):
-        r = self._base_range('altimeter_right', msg.header.stamp)
+        r = self._base_range('altimeter_right')
         r.range = float(msg.pose.position.x)   # AGL in metres; position.y is a magnitude value
         self._pub_right.publish(r)
 
     def _cb_lw(self, msg: PointStamped):
-        r = self._base_range('altimeter_lightware', msg.header.stamp)
+        r = self._base_range('altimeter_lightware')
         raw = msg.point.z
         # -1.0 signals "no return" from the Lightware unit.
         r.range = float('inf') if raw < 0.0 else float(raw)

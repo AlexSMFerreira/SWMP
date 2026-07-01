@@ -125,17 +125,54 @@ English gist plus the concrete action.
 2. ✅ **DONE — Figure referencing pass:** in-text refs added for Figs 1, 3, 4, 5, 6–11,
    12, 13–15; Figs 4/5 reordered after their lead-in text; Figs 13/14/15 moved next to
    the paragraphs they illustrate (now render in Sec 3.4, before Conclusions).
-3. **New content (IN PROGRESS):**
+3. **New content (DONE):**
    - ✅ technology/sensor comparison table (3.2, adapted from the bibliographic review).
+     Full per-sensor survey prose left as-is by request.
    - ✅ Hough transform explanation + sky-exclusion rationale + online-calibration note (3.2).
-   - ⬜ parameter-tuning rationale per backend (3.2).
-   - ⬜ WASS-not-real-time note (+ note: WASSfast N/A here — needs constant
-     camera-to-mean-sea-plane geometry, per the WASSfast paper).
-4. **Figure regeneration:** higher-res Fig 4 (left+right same instant), Fig 5, and
-   disparity/point-cloud figures with source camera image alongside; better point-cloud
-   viewpoint showing waves. 
+   - ✅ parameter-tuning rationale per backend (3.2) — grounded in the real node params
+     (numDisparities, textureThreshold=0, X-Sobel/preFilterCap, block size, speckle, WLS,
+     MODE_HH, disp12 control).
+   - ✅ WASS-not-real-time note + WASSfast N/A (needs constant camera-to-mean-sea-plane
+     geometry; cite rs13183780).
+4. **Figure regeneration (IN PROGRESS):**
+   - ✅ **Backend figures (Figs 6–11)** regenerated as 4-panel combined figures
+     (rectified left+right on top, disparity bottom-left, bird's-eye point cloud
+     bottom-right; near-field 40 m; all six on the **same frame 0**, tuned classical
+     params). Frame 0 gives the richest output (brighter sunset light + visible skyline
+     for context, dense classical disparity — SGBM 70k, SGM-CUDA 7k points) with clean
+     WAFT/RAFT/HITNet surfaces.
+     **Rectification is now the online horizon-corrected variant** (mirrors
+     `Nodes/ros2_stereo_rectifier_horizon.py`, differential mode: right aligned to left,
+     ~1.2° inter-camera roll + ~6.5px offset removed per frame) — `backend_offline_figure.py`
+     applies it by default (`--no-horizon-correct` to disable).
+     New generator `Scripts/backend_offline_figure.py --frame 0 all` (all six backends,
+     faithful to the live nodes); figures `Relatorio/Report/figures/backend_figure_{sbm,
+     sgbm,sgm_cuda,hitnet,raft,waft}.png`; captions updated.
+     Note: **StereoBM produces an empty cloud on every frame of this dark bag** (raw
+     matches ~5 at nDisp=128, rejected to 0 by the tuned uniqueness/disp12/speckle
+     filters) — genuinely the weakest backend here; caption says so and points to Table 2.
+     Investigated whether SBM could hit its Table-2 valid % (19.2%): confirmed that is a
+     **406-frame live-node mean, not a single-frame value**; best achievable offline is
+     ~6.6% (far WLS-fill, empty near field), and a visibly non-empty cloud needs
+     non-standard CLAHE + nDisp=16 and still looks broken (sparse off-centre streak).
+     **Decision (user): keep SBM's figure honestly empty** — faithful to the node and to
+     the report's thesis that classical block matching fails on the sea surface.
+   - ✅ Orphaned per-backend images removed (13 files: `{backend}_disparity/pc.png`,
+     `waft_figure_...png`).
+   - ✅ **Fig 4 (typical frame)** regenerated as the **left+right rectified pair at the
+     same instant**, full-resolution (2464×2056 rectified → ~2741px-wide PNG, up from the
+     old 282px), so the specular glints visibly differ between the two synchronized views
+     (directly answers the tutor's "mostra esquerda e direita... têm diferentes features").
+     Caption + lead-in text updated; widened to `\textwidth`. (An auto-aligned zoom-inset
+     variant was tried and dropped: template-matching the low-texture water is itself
+     unreliable — the very failure the report is about — so the clean two-panel pair is the
+     honest figure.) Generator: `Scripts/frame_and_horizon_figure.py`.
+   - ✅ **Fig 5 (horizon)** regenerated full-resolution (up from 277px) with the excluded
+     sky region shaded and **both** the Hough-detected horizon (yellow) and the margined
+     mask boundary (red) drawn, computed by the real `stereo_common.HorizonMasker` (same
+     code the disparity nodes use). Margin set to 1% of image height for the figure
+     (`horizon_margin_pct=0.01`); caption notes the safety margin. Same generator.
 
-   For the backend figure regeneration, let's do as we did to generate the waft figure with the 4 parts and the pointcloud plot, but remove near field residuals plot and place the left and right camera images on top, bottom left disparity and bottom right pointcloud plot.
-
-5. **Timeline → Gantt chart** in Methodology.
-6. *(Optional, time permitting):* WASSfast experiment.
+5. ✅ **DONE — Timeline → Gantt chart** in Methodology: replaced the milestone table
+   with a `pgfgantt` 15-week chart (7 activity threads) + a concise prose summary
+   (`sections/Methodology/Activities.tex`; `pgfgantt` added to preamble).

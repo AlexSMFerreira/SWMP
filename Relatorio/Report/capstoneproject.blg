@@ -3,44 +3,44 @@ Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: capstoneproject.aux
 The style file: plain.bst
 Database file #1: refs.bib
-You've used 20 entries,
+You've used 21 entries,
             2118 wiz_defined-function locations,
-            619 strings with 8090 characters,
-and the built_in function-call counts, 7148 in all, are:
-= -- 654
-> -- 477
+            624 strings with 8316 characters,
+and the built_in function-call counts, 7554 in all, are:
+= -- 688
+> -- 515
 < -- 3
-+ -- 190
-- -- 168
-* -- 559
-:= -- 1261
-add.period$ -- 60
-call.type$ -- 20
-change.case$ -- 143
++ -- 206
+- -- 182
+* -- 596
+:= -- 1337
+add.period$ -- 63
+call.type$ -- 21
+change.case$ -- 153
 chr.to.int$ -- 0
-cite$ -- 20
-duplicate$ -- 221
-empty$ -- 469
-format.name$ -- 168
-if$ -- 1415
+cite$ -- 21
+duplicate$ -- 231
+empty$ -- 487
+format.name$ -- 182
+if$ -- 1490
 int.to.chr$ -- 0
-int.to.str$ -- 20
-missing$ -- 19
-newline$ -- 103
-num.names$ -- 40
-pop$ -- 135
+int.to.str$ -- 21
+missing$ -- 20
+newline$ -- 108
+num.names$ -- 42
+pop$ -- 143
 preamble$ -- 1
-purify$ -- 124
+purify$ -- 133
 quote$ -- 0
-skip$ -- 160
+skip$ -- 168
 stack$ -- 0
-substring$ -- 308
-swap$ -- 32
+substring$ -- 314
+swap$ -- 33
 text.length$ -- 3
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 78
+type$ -- 82
 warning$ -- 0
-while$ -- 56
-width$ -- 22
-write$ -- 219
+while$ -- 58
+width$ -- 23
+write$ -- 230

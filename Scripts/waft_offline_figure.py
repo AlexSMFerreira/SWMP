@@ -4,10 +4,10 @@ Offline WAFT-Stereo figure generator.
 Reads one stereo pair from a bag, rectifies it (same calibration as
 ros2_stereo_rectifier.py), runs WAFT-Stereo, reprojects to 3D, and writes a
 4-panel figure to Relatorio/Report/figures/waft_figure_<bag>.png:
-    top-left:  raw left camera frame
-    top-right: colourised WAFT disparity map
-    bottom-left:  point cloud – side view (X across, Z depth)
-    bottom-right: point cloud – elevation profile (Z depth, elevation Y)
+    top-left:     rectified left camera
+    top-right:    rectified right camera (same instant)
+    bottom-left:  colourised WAFT disparity map (sky masked)
+    bottom-right: point cloud, bird's-eye view, coloured by wave elevation
 
 Usage (from repo root):
     python3 Scripts/waft_offline_figure.py [bag_path] [--frame N] [--scale S] [--out path]
@@ -36,6 +36,13 @@ import torch.nn.functional as F
 import rosbag2_py
 from rclpy.serialization import deserialize_message
 from rosidl_runtime_py.utilities import get_message
+
+# ── Shared pipeline helpers (sky/horizon masking) ────────────────────────────
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(_REPO_ROOT, 'Nodes'))
+from stereo_common import HorizonMasker  # noqa: E402
+
+_HORIZON = HorizonMasker()
 
 DEFAULT_BAG  = '/media/alex/External/2026_LEIXOES_LOGS/airship_20260528_115912'
 LEFT_IMG     = '/airship/camera/left/image_color/compressed'
@@ -168,6 +175,78 @@ def rectify_pair(left_bgr, right_bgr, map_lx, map_ly, map_rx, map_ry):
     return left_rect, right_rect
 
 
+# ── Online horizon-based roll/offset correction (offline single-frame mirror of
+# Nodes/ros2_stereo_rectifier_horizon.py — no temporal EMA, one measurement/frame) ──
+
+_HZ_MASKER_L = HorizonMasker(detect_max_dim=0)
+_HZ_MASKER_R = HorizonMasker(detect_max_dim=0)
+
+
+def _hz_angle_deg(direction):
+    ang = np.degrees(np.arctan2(direction[1], direction[0]))
+    if ang > 90.0:
+        ang -= 180.0
+    elif ang <= -90.0:
+        ang += 180.0
+    return float(ang)
+
+
+def _hz_row_at(mean, direction, x):
+    if abs(direction[0]) < 1e-9:
+        return float(mean[1])
+    return float(mean[1] + (x - mean[0]) / direction[0] * direction[1])
+
+
+def _hz_measure(masker, img_bgr):
+    raw = masker._find_raw(img_bgr)
+    if raw is None:
+        return None
+    mean, direction = raw
+    return _hz_angle_deg(direction), _hz_row_at(mean, direction, img_bgr.shape[1] * 0.5)
+
+
+def _hz_level(img, roll_deg, extra_dy=0.0):
+    h, w = img.shape[:2]
+    M = cv2.getRotationMatrix2D((w * 0.5, h * 0.5), roll_deg, 1.0)
+    M[1, 2] += extra_dy
+    return cv2.warpAffine(img, M, (w, h), flags=cv2.INTER_LINEAR,
+                          borderMode=cv2.BORDER_CONSTANT, borderValue=(0, 0, 0))
+
+
+def horizon_correct_pair(left_rect, right_rect, mode='differential',
+                         align_vertical=True, max_roll_deg=4.0):
+    """Level residual vibration roll from the horizon line, as the live node does.
+
+    'differential' (default): align the RIGHT image to the LEFT (rotate right by
+    roll_r-roll_l, shift by row_l-row_r); LEFT is left untouched so real boat roll and
+    cloud orientation are preserved — corrects only the inter-camera error.
+    'absolute': level both images to true horizontal.
+    Returns (left_out, right_out, info); info has the measured angles/offset or is None
+    if no horizon was found on either image (inputs returned unchanged)."""
+    ml = _hz_measure(_HZ_MASKER_L, left_rect)
+    mr = _hz_measure(_HZ_MASKER_R, right_rect)
+    if ml is None or mr is None:
+        return left_rect, right_rect, None
+    roll_l, row_l = ml
+    roll_r, row_r = mr
+    info = {'roll_l': roll_l, 'roll_r': roll_r, 'off': row_l - row_r,
+            'roll_diff': roll_l - roll_r}
+
+    if mode == 'absolute':
+        if abs(roll_l) > max_roll_deg or abs(roll_r) > max_roll_deg:
+            return left_rect, right_rect, info
+        corr_l, corr_r = roll_l, roll_r
+    else:
+        if abs(roll_r - roll_l) > max_roll_deg:
+            return left_rect, right_rect, info
+        corr_l, corr_r = 0.0, (roll_r - roll_l)
+
+    dy = (row_l - row_r) if align_vertical else 0.0
+    left_out = _hz_level(left_rect, corr_l) if abs(corr_l) > 1e-3 else left_rect
+    right_out = _hz_level(right_rect, corr_r, extra_dy=dy)
+    return left_out, right_out, info
+
+
 # ── WAFT inference ────────────────────────────────────────────────────────────
 
 def load_waft(repo_dir, config_file, ckpt_path, device='cuda'):
@@ -237,6 +316,12 @@ def run_waft(model, left_bgr, right_bgr, scale_factor, device='cuda'):
     # Remove invisible matches (match would fall off left edge of right image)
     xx = np.arange(w_work, dtype=np.float32)[None, :]
     disp[xx - disp < 0] = 0.0
+
+    # Apply the same sky/horizon mask as the live pipeline (ros2_waft_disparity.py)
+    # so the disparity map — and the reprojected cloud — carry no matches above the
+    # horizon. Mask is detected on the full-res left frame, built at working res.
+    sky_mask, _ = _HORIZON.compute_mask(left_bgr, mask_shape=(h_work, w_work))
+    disp[sky_mask] = 0.0
 
     return disp, left_small
 
@@ -308,74 +393,69 @@ def _colorise_disparity(disp):
     return cv2.cvtColor(color, cv2.COLOR_BGR2RGB)
 
 
-def make_figure(left_bgr, left_small_bgr, disp, X, Y, Z, out_path, near_range=15.0):
+def make_figure(left_rect, right_rect, disp, X, Y, Z, out_path, title='WAFT-Stereo'):
     """
-    4-panel figure.  The Hs estimate uses only points within near_range (m) of the
-    camera, where stereo depth error is small enough to see wave signal rather than
-    the quadratic depth-error trend that dominates at long range.  The live pipeline
-    avoids this by transforming to map frame (nav TF + attitude) before fitting —
-    this offline figure does not have nav data, so the near-field restriction is
-    the practical substitute.
+    4-panel figure:
+        top-left:     rectified left camera
+        top-right:    rectified right camera  (same instant — shows how the specular,
+                      non-Lambertian sea surface differs between the two views)
+        bottom-left:  colourised disparity map (sky masked)
+        bottom-right: point cloud, bird's-eye view, coloured by plane-fit elevation
+                      residual (i.e. wave elevation after removing the mean sea plane)
     """
-    # Near-field mask for Hs only (full cloud shown in scatter)
-    near = X < near_range
-    res_all, a, b, c = plane_residuals(X, Y, Z)
-    res_near = Z[near] - (a * X[near] + b * Y[near] + c)
-    tilt_deg = float(np.degrees(np.arctan(np.sqrt(a**2 + b**2))))
-    hs_near  = 4.0 * float(np.std(res_near))
+    have_cloud = len(X) >= 10
+    if have_cloud:
+        res_all, a, b, c = plane_residuals(X, Y, Z)
+        tilt_deg = float(np.degrees(np.arctan(np.sqrt(a**2 + b**2))))
 
     fig, axes = plt.subplots(2, 2, figsize=(16, 10))
-    fig.suptitle('WAFT-Stereo — offline single-frame validation', fontsize=13)
+    fig.suptitle(f'{title} — offline single-frame reconstruction', fontsize=13)
 
-    # (0,0) Raw left camera image
-    axes[0, 0].imshow(cv2.cvtColor(left_bgr, cv2.COLOR_BGR2RGB))
-    axes[0, 0].set_title('Left camera (raw, native resolution)')
+    # (0,0) rectified left camera
+    axes[0, 0].imshow(cv2.cvtColor(left_rect, cv2.COLOR_BGR2RGB))
+    axes[0, 0].set_title('Rectified left camera')
     axes[0, 0].axis('off')
 
-    # (0,1) Disparity map
-    axes[0, 1].imshow(_colorise_disparity(disp))
-    axes[0, 1].set_title(f'WAFT disparity map ({disp.shape[1]}×{disp.shape[0]} px, sky masked)')
+    # (0,1) rectified right camera
+    axes[0, 1].imshow(cv2.cvtColor(right_rect, cv2.COLOR_BGR2RGB))
+    axes[0, 1].set_title('Rectified right camera')
     axes[0, 1].axis('off')
 
-    # Subsample for scatter (keep at most 40k points)
-    n = len(X)
-    if n > 40_000:
-        idx = np.random.choice(n, 40_000, replace=False)
-        Xp, Yp, Zp, rp = X[idx], Y[idx], Z[idx], res_all[idx]
+    # (1,0) disparity map
+    axes[1, 0].imshow(_colorise_disparity(disp))
+    axes[1, 0].set_title(f'{title} disparity map ({disp.shape[1]}×{disp.shape[0]} px, sky masked)')
+    axes[1, 0].axis('off')
+
+    # (1,1) bird's-eye point cloud, coloured by elevation after plane fit
+    if have_cloud:
+        n = len(X)
+        if n > 40_000:
+            idx = np.random.choice(n, 40_000, replace=False)
+            Xp, Yp, rp = X[idx], Y[idx], res_all[idx]
+        else:
+            Xp, Yp, rp = X, Y, res_all
+
+        r_lim = max(abs(np.percentile(rp, 2)), abs(np.percentile(rp, 98)), 0.05)
+        sc = axes[1, 1].scatter(Xp, Yp, c=rp, cmap='RdYlBu_r', s=0.8, alpha=0.6,
+                                vmin=-r_lim, vmax=r_lim)
+        plt.colorbar(sc, ax=axes[1, 1], label='Elevation after plane fit (m)')
+        axes[1, 1].set_title(f"Point cloud, bird's-eye view (colour = elevation, tilt {tilt_deg:.1f}°)")
+        axes[1, 1].set_aspect('equal', adjustable='datalim')
     else:
-        Xp, Yp, Zp, rp = X, Y, Z, res_all
-
-    # (1,0) Bird's-eye view: lateral (Y) vs forward (X), coloured by plane-fit residual
-    r_lim2 = max(abs(np.percentile(rp, 2)), abs(np.percentile(rp, 98)))
-    sc = axes[1, 0].scatter(Xp, Yp, c=rp, cmap='RdYlBu_r', s=0.8, alpha=0.6,
-                            vmin=-r_lim2, vmax=r_lim2)
-    plt.colorbar(sc, ax=axes[1, 0], label='Wave elevation residual (m)')
-    axes[1, 0].set_xlabel('Forward X (m)')
-    axes[1, 0].set_ylabel('Lateral Y (m, left=+)')
-    axes[1, 0].set_title(f'Bird\'s-eye view (colour = elevation after plane fit, tilt {tilt_deg:.1f}°)')
-    axes[1, 0].grid(True, alpha=0.3)
-    axes[1, 0].set_aspect('equal', adjustable='datalim')
-
-    # (1,1) Near-field plane residuals — where stereo is accurate
-    r_near_all = res_all[near]
-    r_lim = max(abs(np.percentile(r_near_all, 1)), abs(np.percentile(r_near_all, 99)), 0.05) * 1.3
-    axes[1, 1].hist(r_near_all, bins=60, range=(-r_lim, r_lim),
-                    color='steelblue', alpha=0.8, edgecolor='none')
-    axes[1, 1].axvline(0, color='r', linestyle='--', linewidth=1.2)
-    axes[1, 1].set_xlabel('Wave elevation residual (m)')
-    axes[1, 1].set_ylabel('Point count')
-    axes[1, 1].set_title(
-        f'Near-field residuals (X < {near_range:.0f} m, tilt {tilt_deg:.1f}°)\n'
-        f'Hs = 4σ = {hs_near:.3f} m  [single frame, no nav TF — approximate]'
-    )
+        axes[1, 1].text(0.5, 0.5, f'No usable point cloud\n({len(X)} valid points)',
+                        ha='center', va='center', transform=axes[1, 1].transAxes,
+                        fontsize=13, color='0.4')
+        axes[1, 1].set_title("Point cloud, bird's-eye view")
+    axes[1, 1].set_xlabel('Forward X (m)')
+    axes[1, 1].set_ylabel('Lateral Y (m, left=+)')
     axes[1, 1].grid(True, alpha=0.3)
 
     plt.tight_layout()
     plt.savefig(out_path, dpi=150, bbox_inches='tight')
     plt.close(fig)
+    tilt_str = f'{tilt_deg:.1f}°' if have_cloud else 'n/a'
     print(f'  Saved → {out_path}')
-    print(f'  {len(X)} total pts, near-field ({near_range}m): {near.sum()} pts, '
-          f'tilt={tilt_deg:.1f}°, Hs≈{hs_near:.3f} m')
+    print(f'  {len(X)} pts, tilt={tilt_str}')
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
@@ -426,7 +506,7 @@ def main():
                         max_range=args.max_range)
 
     print('Rendering figure…')
-    make_figure(left_bgr, left_small, disp, X, Y, Z, out_path, near_range=15.0)
+    make_figure(left_rect, right_rect, disp, X, Y, Z, out_path)
 
 
 if __name__ == '__main__':

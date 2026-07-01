@@ -83,6 +83,12 @@ Willard~J. Pierson~Jr. and Lionel Moskowitz.
 \newblock {\em Journal of Geophysical Research (1896-1977)}, 69(24):5181--5190,
   1964.
 
+\bibitem{rs13183780}
+Mara Pistellato, Filippo Bergamasco, Andrea Torsello, Francesco Barbariol,
+  Jeseon Yoo, Jin-Yong Jeong, and Alvise Benetazzo.
+\newblock A physics-driven cnn model for real-time sea waves 3d reconstruction.
+\newblock {\em Remote Sensing}, 13(18), 2021.
+
 \bibitem{qi2018predictable}
 Yusheng Qi, Guangyu Wu, Yuming Liu, and Dick K.~P. Yue.
 \newblock Predictable zone for phase-resolved reconstruction and forecast of

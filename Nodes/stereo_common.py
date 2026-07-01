@@ -126,7 +126,7 @@ class HorizonMasker:
     mask (True = sky, above the horizon). Caches the last good horizon and falls
     back to a fixed crop row on a cold start, exactly like the HITNet node."""
 
-    def __init__(self, fallback_crop_pct=0.40, horizon_margin_pct=0.03, detect_max_dim=640):
+    def __init__(self, fallback_crop_pct=0.40, horizon_margin_pct=0.01, detect_max_dim=640):
         self.fallback_crop_pct = fallback_crop_pct
         self.horizon_margin_pct = horizon_margin_pct
         # The rectifier now publishes at native camera resolution (e.g. 2464x2056) —

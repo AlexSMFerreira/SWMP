@@ -68,7 +68,7 @@ class SGMCudaDisparityNode(Node):
         self.declare_parameter('input_height',       240)
 
         self.declare_parameter('sky_crop_pct',       0.40)
-        self.declare_parameter('horizon_margin_pct', 0.03)
+        self.declare_parameter('horizon_margin_pct', 0.01)
         self.declare_parameter('debug_horizon',      True)
 
         # ── WLS post-filter ──────────────────────────────────────────────────────

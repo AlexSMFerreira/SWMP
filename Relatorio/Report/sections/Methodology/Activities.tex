@@ -1,28 +1,30 @@
-The internship followed the five phases of the original work plan (literature review, sensor characterization, estimation-algorithm development, wave modelling/prediction, validation and documentation). The work is summarized as an ordered sequence of milestones in Table~\ref{tab:activities}.
+The internship followed the five phases of the original work plan: literature review, sensor characterization, estimation-algorithm development, wave modelling/prediction, and validation. Figure~\ref{fig:gantt} shows the resulting schedule over the fifteen weeks.
 
-\begin{table}[H]
+\begin{figure}[H]
 	\centering
-	\caption{Project timeline.}
-	\label{tab:activities}
-	\small
-	\begin{tabular}{@{}cp{0.82\textwidth}@{}}
-		\textbf{Week} & \textbf{Milestone} \\
-		\hline
-		1-2 & Literature review for sensor selection and wave modelling. ROS~2 setup. \\
-		3 & Incorporated feedback from the team on the literature review. \\
-		4 & Sensor-fusion literature review. \\
-		5 & Began hands-on ROS~2 learning and early disparity/point-cloud experiments on a provided drone-flight dataset. \\
-		6 & Early disparity/point-cloud attempts had limited success; switched to validating the pipeline on a simpler static-camera case first, with collected camera calibration data. \\
-		7-8 & Tested multiple disparity backends and tuned their parameters. Good results on the calibration dataset, which was recorded inside the lab. \\
-		9 & Additional disparity backends added and compared (classical and machine-learning based). Only decent results achieved were on HitNet and RAFT-Stereo.\\
-		10 & Single command pipeline start; Pointcloud roll/orientation correction via horizon line detection. \\
-		11 & New disparity backend tested with better results (WAFT-Stereo);The team supplied the calibrated navigation bags, unblocking pose work. \\
-		12 & Rig URDF geometry obtained; WAFT-Stereo backend integrated in the pipelineand tuned ($\sim$150\,ms/frame), outperforming HITNet. \\
-		12--13 & Altimeter wave-estimation node creation and tuning (band-limiting fix); point-cloud bad-frame gate added. \\
-		13 & Point-cloud wave estimator reconciled with the altimeter estimator (range filter + median aggregation). \\
-		14 & Doppler/encounter-frequency correction resolved the wave period disagreement between estimators. \\
-		15 & Final disparity-backend comparison campaign (six backends, tuned vs.\ default); validation and report writing. \\
-	\end{tabular}
-\end{table}
+	\resizebox{\textwidth}{!}{%
+	\begin{ganttchart}[
+		hgrid, vgrid,
+		bar height=0.6,
+		bar/.style={fill=gray!60, draw=none},
+		bar label font=\small,
+		title label font=\small,
+		y unit title=0.6cm,
+		y unit chart=0.7cm,
+	]{1}{15}
+		\gantttitle{Week}{15} \\
+		\gantttitlelist{1,...,15}{1} \\
+		\ganttbar{Literature review (sensors, wave models, fusion)}{1}{4} \\
+		\ganttbar{ROS~2 setup and environment}{1}{2} \\
+		\ganttbar{Early stereo / point-cloud experiments}{5}{6} \\
+		\ganttbar{Disparity-backend development and tuning}{6}{12} \\
+		\ganttbar{Pipeline integration and georeferencing}{10}{12} \\
+		\ganttbar{Wave-parameter estimation and reconciliation}{12}{14} \\
+		\ganttbar{Final comparison, validation and report}{14}{15}
+	\end{ganttchart}%
+	}
+	\caption{Project timeline (15 weeks), grouped into the main activity threads. The disparity-backend search spans most of the project rather than a single milestone, overlapping pipeline integration and wave-parameter work.}
+	\label{fig:gantt}
+\end{figure}
 
-As anticipated in the project plan, the search for a disparity-estimation backend that performs adequately on the sea surface was not a single milestone but a recurring thread throughout the project, beginning with the first early experiments and still being actively revisited in the final comparison campaign.
+The first weeks were spent on the literature review (sensor selection, ocean-wave models and multisensor fusion) and on setting up the ROS~2 environment. Hands-on work began with early stereo and point-cloud experiments on a provided drone-flight dataset; when these had limited success on the sea surface, the pipeline was first validated on a simpler static-camera case using collected calibration data. From there, the bulk of the project was the search for a disparity-estimation backend that works on water: multiple classical and learned backends were implemented, tuned and compared, a thread that ran from the early experiments all the way to the final comparison campaign. In parallel, the pipeline was integrated behind a single launch command and georeferenced once the team supplied the calibrated navigation bags and the rig URDF geometry, including a roll/orientation correction driven by horizon detection. The wave-parameter estimators were then developed and cross-reconciled (the altimeter band-limiting fix, the point-cloud bad-frame gate, and the Doppler/encounter-frequency correction) before the final backend comparison, validation and report writing.

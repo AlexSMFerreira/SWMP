@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2026.2.2)  1 JUL 2026 17:19
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2026.2.2)  1 JUL 2026 18:10
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -258,129 +258,126 @@ Package microtype Info: Loading generic protrusion settings for font family
 <./figures//pipeline_architecture.png, id=52, 1899.095pt x 345.29pt>
 File: ./figures//pipeline_architecture.png Graphic file (type png)
 <use ./figures//pipeline_architecture.png>
-Package pdftex.def Info: ./figures//pipeline_architecture.png  used on input line 7.
+Package pdftex.def Info: ./figures//pipeline_architecture.png  used on input line 31.
 (pdftex.def)             Requested size: 345.0pt x 62.7238pt.
-<./figures//diagrams/tf_frame_tree.png, id=53, 1277.77374pt x 698.61pt>
+ [9]
+<./figures//diagrams/tf_frame_tree.png, id=56, 1277.77374pt x 698.61pt>
 File: ./figures//diagrams/tf_frame_tree.png Graphic file (type png)
 <use ./figures//diagrams/tf_frame_tree.png>
-Package pdftex.def Info: ./figures//diagrams/tf_frame_tree.png  used on input line 14.
+Package pdftex.def Info: ./figures//diagrams/tf_frame_tree.png  used on input line 38.
 (pdftex.def)             Requested size: 293.2521pt x 160.32513pt.
- [9 <./figures//pipeline_architecture.png (PNG copy)> <./figures//diagrams/tf_frame_tree.png (PNG copy)>]
 <./figures//original_camera_footage.png, id=57, 283.0575pt x 228.855pt>
 File: ./figures//original_camera_footage.png Graphic file (type png)
 <use ./figures//original_camera_footage.png>
-Package pdftex.def Info: ./figures//original_camera_footage.png  used on input line 25.
+Package pdftex.def Info: ./figures//original_camera_footage.png  used on input line 49.
 (pdftex.def)             Requested size: 293.2521pt x 237.1166pt.
-<./figures//horizon_detection.png, id=58, 278.03876pt x 232.87pt>
+ [10 <./figures//pipeline_architecture.png (PNG copy)> <./figures//diagrams/tf_frame_tree.png (PNG copy)>]
+<./figures//horizon_detection.png, id=61, 278.03876pt x 232.87pt>
 File: ./figures//horizon_detection.png Graphic file (type png)
 <use ./figures//horizon_detection.png>
-Package pdftex.def Info: ./figures//horizon_detection.png  used on input line 32.
+Package pdftex.def Info: ./figures//horizon_detection.png  used on input line 56.
 (pdftex.def)             Requested size: 293.2521pt x 245.61511pt.
- [10 <./figures//original_camera_footage.png>] [11 <./figures//horizon_detection.png>]
-<./figures//sbm_disparity.png, id=67, 633.36626pt x 526.96875pt>
+ [11 <./figures//original_camera_footage.png>] [12 <./figures//horizon_detection.png>] [13]
+<./figures//sbm_disparity.png, id=74, 633.36626pt x 526.96875pt>
 File: ./figures//sbm_disparity.png Graphic file (type png)
 <use ./figures//sbm_disparity.png>
-Package pdftex.def Info: ./figures//sbm_disparity.png  used on input line 73.
+Package pdftex.def Info: ./figures//sbm_disparity.png  used on input line 101.
 (pdftex.def)             Requested size: 165.59853pt x 137.78056pt.
-<./figures//sbm_pc.png, id=68, 633.36626pt x 526.96875pt>
+<./figures//sbm_pc.png, id=75, 633.36626pt x 526.96875pt>
 File: ./figures//sbm_pc.png Graphic file (type png)
 <use ./figures//sbm_pc.png>
-Package pdftex.def Info: ./figures//sbm_pc.png  used on input line 77.
+Package pdftex.def Info: ./figures//sbm_pc.png  used on input line 105.
 (pdftex.def)             Requested size: 165.59853pt x 137.78056pt.
-<./figures//sgbm_disparity.png, id=69, 634.37pt x 534.99875pt>
+<./figures//sgbm_disparity.png, id=76, 634.37pt x 534.99875pt>
 File: ./figures//sgbm_disparity.png Graphic file (type png)
 <use ./figures//sgbm_disparity.png>
-Package pdftex.def Info: ./figures//sgbm_disparity.png  used on input line 87.
+Package pdftex.def Info: ./figures//sgbm_disparity.png  used on input line 115.
 (pdftex.def)             Requested size: 165.59853pt x 139.65967pt.
-<./figures//sgbm_pointcloud.png, id=70, 634.37pt x 534.99875pt>
+<./figures//sgbm_pointcloud.png, id=77, 634.37pt x 534.99875pt>
 File: ./figures//sgbm_pointcloud.png Graphic file (type png)
 <use ./figures//sgbm_pointcloud.png>
-Package pdftex.def Info: ./figures//sgbm_pointcloud.png  used on input line 91.
+Package pdftex.def Info: ./figures//sgbm_pointcloud.png  used on input line 119.
 (pdftex.def)             Requested size: 165.59853pt x 139.65967pt.
- [12 <./figures//sbm_disparity.png> <./figures//sbm_pc.png>]
-<./figures//sgm_cuda_disparity.png, id=77, 521.95pt x 434.62375pt>
+<./figures//sgm_cuda_disparity.png, id=78, 521.95pt x 434.62375pt>
 File: ./figures//sgm_cuda_disparity.png Graphic file (type png)
 <use ./figures//sgm_cuda_disparity.png>
-Package pdftex.def Info: ./figures//sgm_cuda_disparity.png  used on input line 101.
+Package pdftex.def Info: ./figures//sgm_cuda_disparity.png  used on input line 129.
 (pdftex.def)             Requested size: 165.59853pt x 137.89534pt.
-<./figures//sgm_pc.png, id=78, 1029.8475pt x 533.995pt>
+<./figures//sgm_pc.png, id=79, 1029.8475pt x 533.995pt>
 File: ./figures//sgm_pc.png Graphic file (type png)
 <use ./figures//sgm_pc.png>
-Package pdftex.def Info: ./figures//sgm_pc.png  used on input line 105.
+Package pdftex.def Info: ./figures//sgm_pc.png  used on input line 133.
 (pdftex.def)             Requested size: 165.59853pt x 85.86464pt.
-<./figures//hitnet_disparity.png, id=79, 634.37pt x 534.99875pt>
+ [14 <./figures//sbm_disparity.png> <./figures//sbm_pc.png> <./figures//sgbm_disparity.png> <./figures//sgbm_pointcloud.png>]
+<./figures//hitnet_disparity.png, id=87, 634.37pt x 534.99875pt>
 File: ./figures//hitnet_disparity.png Graphic file (type png)
 <use ./figures//hitnet_disparity.png>
-Package pdftex.def Info: ./figures//hitnet_disparity.png  used on input line 115.
+Package pdftex.def Info: ./figures//hitnet_disparity.png  used on input line 143.
 (pdftex.def)             Requested size: 165.59853pt x 139.65967pt.
-<./figures//hitnet_pc.png, id=80, 636.3775pt x 461.725pt>
+<./figures//hitnet_pc.png, id=88, 636.3775pt x 461.725pt>
 File: ./figures//hitnet_pc.png Graphic file (type png)
 <use ./figures//hitnet_pc.png>
-Package pdftex.def Info: ./figures//hitnet_pc.png  used on input line 119.
+Package pdftex.def Info: ./figures//hitnet_pc.png  used on input line 147.
 (pdftex.def)             Requested size: 165.59853pt x 120.1443pt.
- [13 <./figures//sgbm_disparity.png> <./figures//sgbm_pointcloud.png> <./figures//sgm_cuda_disparity.png> <./figures//sgm_pc.png>]
-<./figures//raft_disparity.png, id=88, 633.36626pt x 526.96875pt>
+<./figures//raft_disparity.png, id=89, 633.36626pt x 526.96875pt>
 File: ./figures//raft_disparity.png Graphic file (type png)
 <use ./figures//raft_disparity.png>
-Package pdftex.def Info: ./figures//raft_disparity.png  used on input line 129.
+Package pdftex.def Info: ./figures//raft_disparity.png  used on input line 157.
 (pdftex.def)             Requested size: 165.59853pt x 137.78056pt.
-<./figures//raft_pc.png, id=89, 861.2175pt x 518.93875pt>
+<./figures//raft_pc.png, id=90, 861.2175pt x 518.93875pt>
 File: ./figures//raft_pc.png Graphic file (type png)
 <use ./figures//raft_pc.png>
-Package pdftex.def Info: ./figures//raft_pc.png  used on input line 133.
+Package pdftex.def Info: ./figures//raft_pc.png  used on input line 161.
 (pdftex.def)             Requested size: 165.59853pt x 99.77922pt.
-<./figures//waft_disparity.png, id=90, 560.0925pt x 467.7475pt>
+ [15 <./figures//sgm_cuda_disparity.png> <./figures//sgm_pc.png> <./figures//hitnet_disparity.png> <./figures//hitnet_pc.png>]
+<./figures//waft_disparity.png, id=98, 560.0925pt x 467.7475pt>
 File: ./figures//waft_disparity.png Graphic file (type png)
 <use ./figures//waft_disparity.png>
-Package pdftex.def Info: ./figures//waft_disparity.png  used on input line 143.
+Package pdftex.def Info: ./figures//waft_disparity.png  used on input line 171.
 (pdftex.def)             Requested size: 165.59853pt x 138.29834pt.
-<./figures//waft_pc.png, id=91, 1057.9525pt x 552.0625pt>
+<./figures//waft_pc.png, id=99, 1057.9525pt x 552.0625pt>
 File: ./figures//waft_pc.png Graphic file (type png)
 <use ./figures//waft_pc.png>
-Package pdftex.def Info: ./figures//waft_pc.png  used on input line 147.
+Package pdftex.def Info: ./figures//waft_pc.png  used on input line 175.
 (pdftex.def)             Requested size: 165.59853pt x 86.41118pt.
- [14 <./figures//hitnet_disparity.png> <./figures//hitnet_pc.png> <./figures//raft_disparity.png> <./figures//raft_pc.png>] [15 <./figures//waft_disparity.png> <./figures//waft_pc.png>]) [16] (./sections/Development/Solution.tex
-<./figures//full_rviz.png, id=107, 1927.2pt x 1051.93pt>
+ [16 <./figures//raft_disparity.png> <./figures//raft_pc.png> <./figures//waft_disparity.png> <./figures//waft_pc.png>] [17]) (./sections/Development/Solution.tex [18]
+<./figures//full_rviz.png, id=114, 1927.2pt x 1051.93pt>
 File: ./figures//full_rviz.png Graphic file (type png)
 <use ./figures//full_rviz.png>
 Package pdftex.def Info: ./figures//full_rviz.png  used on input line 9.
 (pdftex.def)             Requested size: 345.0pt x 188.31195pt.
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-) (./sections/Development/Validation.tex [17]
-<./figures//diagrams/altimeter_wave_pipeline.png, id=111, 638.385pt x 1217.54875pt>
+) (./sections/Development/Validation.tex [19 <./figures//full_rviz.png>]
+<./figures//diagrams/altimeter_wave_pipeline.png, id=119, 638.385pt x 1217.54875pt>
 File: ./figures//diagrams/altimeter_wave_pipeline.png Graphic file (type png)
 <use ./figures//diagrams/altimeter_wave_pipeline.png>
 Package pdftex.def Info: ./figures//diagrams/altimeter_wave_pipeline.png  used on input line 9.
 (pdftex.def)             Requested size: 236.47148pt x 451.00618pt.
- [18 <./figures//full_rviz.png>] [19 <./figures//diagrams/altimeter_wave_pipeline.png (PNG copy)>]
-<./figures//diagrams/bad_frame_gate.png, id=120, 777.90625pt x 1049.9225pt>
+ [20] [21 <./figures//diagrams/altimeter_wave_pipeline.png (PNG copy)>]
+<./figures//diagrams/bad_frame_gate.png, id=126, 777.90625pt x 1049.9225pt>
 File: ./figures//diagrams/bad_frame_gate.png Graphic file (type png)
 <use ./figures//diagrams/bad_frame_gate.png>
 Package pdftex.def Info: ./figures//diagrams/bad_frame_gate.png  used on input line 18.
 (pdftex.def)             Requested size: 248.40094pt x 335.26114pt.
- [20 <./figures//diagrams/bad_frame_gate.png (PNG copy)>]
-<./figures//diagrams/doppler_correction.png, id=124, 1567.8575pt x 307.1475pt>
+ [22 <./figures//diagrams/bad_frame_gate.png (PNG copy)>]
+<./figures//diagrams/doppler_correction.png, id=130, 1567.8575pt x 307.1475pt>
 File: ./figures//diagrams/doppler_correction.png Graphic file (type png)
 <use ./figures//diagrams/doppler_correction.png>
 Package pdftex.def Info: ./figures//diagrams/doppler_correction.png  used on input line 29.
 (pdftex.def)             Requested size: 345.0pt x 67.58672pt.
- [21 <./figures//diagrams/doppler_correction.png (PNG copy)>]) (./sections/Conclusions/Results.tex) (./sections/Conclusions/Lessons.tex [22]) (./sections/Conclusions/Future.tex [23]) (./sections/Conclusions/ODS.tex) (./capstoneproject.bbl [24] [25]) [26] (./capstoneproject.aux) ) 
+ [23 <./figures//diagrams/doppler_correction.png (PNG copy)>]) (./sections/Conclusions/Results.tex) (./sections/Conclusions/Lessons.tex [24]) (./sections/Conclusions/Future.tex [25]) (./sections/Conclusions/ODS.tex) (./capstoneproject.bbl [26] [27]) [28] (./capstoneproject.aux) ) 
 Here is how much of TeX's memory you used:
- 5438 strings out of 480154
- 95579 string characters out of 5893789
- 421849 words of memory out of 5000000
- 23086 multiletter control sequences out of 15000+600000
- 530863 words of font info for 152 fonts, out of 8000000 for 9000
+ 5441 strings out of 480154
+ 95622 string characters out of 5893789
+ 421859 words of memory out of 5000000
+ 23087 multiletter control sequences out of 15000+600000
+ 530946 words of font info for 153 fonts, out of 8000000 for 9000
  62 hyphenation exceptions out of 8191
- 55i,11n,62p,2069b,295s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 55i,11n,62p,2051b,295s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texmf/fonts/enc/dvips/lm/lm-ec.enc}{/usr/share/texmf/fonts/enc/dvips/lm/lm-ts1.enc}{/usr/share/texmf/fonts/enc/dvips/lm/lm-rm.enc}{/usr/share/texmf/fonts/enc/dvips/lm/lm-mathsy.enc}{/usr/share/texmf/fonts/enc/dvips/lm/lm-mathit.enc}</usr/share/texmf/fonts/type1/public/lm/lmbx10.pfb></usr/share/texmf/fonts/type1/public/lm/lmbx12.pfb></usr/share/texmf/fonts/type1/public/lm/lmbx9.pfb></usr/share/texmf/fonts/type1/public/lm/lmmi10.pfb></usr/share/texmf/fonts/type1/public/lm/lmmi6.pfb></usr/share/texmf/fonts/type1/public/lm/lmmi7.pfb></usr/share/texmf/fonts/type1/public/lm/lmmi9.pfb></usr/share/texmf/fonts/type1/public/lm/lmr10.pfb></usr/share/texmf/fonts/type1/public/lm/lmr7.pfb></usr/share/texmf/fonts/type1/public/lm/lmr9.pfb></usr/share/texmf/fonts/type1/public/lm/lmri10.pfb></usr/share/texmf/fonts/type1/public/lm/lmsy10.pfb></usr/share/texmf/fonts/type1/public/lm/lmsy9.pfb></usr/share/texmf/fonts/type1/public/lm/lmtt10.pfb>
-Output written on capstoneproject.pdf (27 pages, 1916108 bytes).
+Output written on capstoneproject.pdf (29 pages, 1920563 bytes).
 PDF statistics:
- 215 PDF objects out of 1000 (max. 8388607)
- 115 compressed objects within 2 object streams
+ 221 PDF objects out of 1000 (max. 8388607)
+ 119 compressed objects within 2 object streams
  0 named destinations out of 1000 (max. 500000)
  35439 words of extra memory for PDF output out of 35830 (max. 10000000)
 

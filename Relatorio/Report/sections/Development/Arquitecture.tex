@@ -1,6 +1,30 @@
 \label{sec:architecture}
 
-\textbf{Pipeline overview.} The system is a chain of ROS~2 nodes operating on a calibrated stereo pair, a navigation/INS solution, and a set of laser altimeters. A rectification node undistorts and rectifies the raw stereo images and publishes the corresponding camera calibration. Its output feeds a disparity-estimation node (interchangeable between six backends, discussed below), whose disparity map is reprojected into a coloured 3D point cloud. In parallel, a pose-broadcasting node consumes the navigation solution and publishes the platform's pose and a map~$\leftrightarrow$~body transform, which georeferences the point cloud and is also used by an altimeter-publishing node to place the laser-altimeter readings in the same frame. Two further nodes consume this georeferenced data to estimate sea-state parameters independently: one analyses the temporal signal from a single altimeter, the other analyses the spatial geometry of the stereo point cloud. Figure~\ref{fig:pipeline-architecture} summarises the node graph and the topics connecting each stage, and Figure~\ref{fig:tf-frame-tree} shows the coordinate-frame tree that relates the sensors to the platform body and the world frame.
+\subsection*{Sensing technologies}
+
+Several sensing modalities can, in principle, perceive the sea surface, and no single one satisfies every operational requirement of a low-altitude maritime platform. Table~\ref{tab:sensor-comparison} summarises the main candidates against the characteristics most relevant to ocean-wave perception: usable range, spatial resolution, robustness to adverse atmospheric conditions, independence from ambient illumination, ability to measure wave velocity directly, and relative cost.
+
+\begin{table}[H]
+	\centering
+	\caption{Comparison of sensing technologies for ocean-wave perception.}
+	\label{tab:sensor-comparison}
+	\resizebox{\textwidth}{!}{%
+	\begin{tabular}{l c c c c c c}
+		\textbf{Sensor} & \textbf{Range} & \textbf{Spatial resolution} & \textbf{Atmos.\ robustness} & \textbf{Illum.\ independent} & \textbf{Velocity meas.} & \textbf{Relative cost} \\
+		\hline
+		FMCW radar          & 1--600~m  & Low       & Excellent & Yes & Yes (Doppler) & Moderate   \\
+		LiDAR               & 1--300~m  & High      & Moderate  & Yes & No            & High       \\
+		Optical camera      & N/A       & Very high & Poor      & No  & No            & Low        \\
+		Thermal camera      & N/A       & High      & Moderate  & Yes & No            & Moderate   \\
+		X-band radar        & 1--2000~m & Low       & Good      & Yes & Yes (Doppler) & High       \\
+		Ultrasonic          & 1--10~m   & Moderate  & Good      & Yes & No            & Very low   \\
+	\end{tabular}}
+\end{table}
+
+The rig used in this work combines a calibrated stereo camera pair with laser altimeters, a lidar and a thermal camera, alongside a GNSS/INS navigation solution. Stereo cameras were retained as the primary geometric sensor because they are the only low-cost modality that reconstructs the full 3D surface geometry at high spatial resolution, on which the wave-parameter estimation depends; their poor robustness to lighting and to the specular sea surface is precisely the challenge addressed in the rest of this section. The downward-looking laser altimeters complement them with a direct, illumination-independent range measurement, used both for altitude control and as an independent cross-check of the stereo-derived wave height (Section~\ref{sec:validation}).
+
+\subsection*{Pipeline overview}
+ The system is a chain of ROS~2 nodes operating on a calibrated stereo pair, a navigation/INS solution, and a set of laser altimeters. A rectification node undistorts and rectifies the raw stereo images and publishes the corresponding camera calibration. Its output feeds a disparity-estimation node (interchangeable between six backends, discussed below), whose disparity map is reprojected into a coloured 3D point cloud. In parallel, a pose-broadcasting node consumes the navigation solution and publishes the platform's pose and a map~$\leftrightarrow$~body transform, which georeferences the point cloud and is also used by an altimeter-publishing node to place the laser-altimeter readings in the same frame. Two further nodes consume this georeferenced data to estimate sea-state parameters independently: one analyses the temporal signal from a single altimeter, the other analyses the spatial geometry of the stereo point cloud. Figure~\ref{fig:pipeline-architecture} summarises the node graph and the topics connecting each stage, and Figure~\ref{fig:tf-frame-tree} shows the coordinate-frame tree that relates the sensors to the platform body and the world frame.
 
 \begin{figure}[H]
 	\centering
@@ -33,6 +57,10 @@ The sea surface is a uniquely adversarial target for stereo matching: it is low-
 	\caption{Sky/horizon masking applied by the shared pre-processing stage. Pixels above the detected horizon line (shown in red) are excluded from disparity estimation and point-cloud reconstruction, preventing sky matches from corrupting the sea-surface output.}
 	\label{fig:horizon-detection}
 \end{figure}
+
+The horizon line itself is found with the Hough transform, a classical feature-detection technique that recovers parametric shapes (here, straight lines) from an edge image. Each edge pixel votes for every line that could pass through it, and lines are detected as peaks in the accumulated votes; because a genuine line contributes many collinear votes, the method is robust to gaps and to isolated edge noise. Concretely, the frame is converted to grayscale, blurred, and passed through a Canny edge detector; the probabilistic Hough transform (\texttt{HoughLinesP}) then extracts line segments, of which only the near-horizontal ones are kept, and a single horizon line is fitted through their endpoints. Detection runs on a downscaled copy of the frame, since only the coarse shape of the horizon is needed, and the last good horizon is cached so that a frame in which no line is found reuses the previous estimate rather than failing.
+
+The sky is excluded because it is actively harmful to the sea-surface reconstruction, not merely irrelevant: clouds and bright sky produce strong but spurious stereo matches that have nothing to do with the water, and any disparity recovered there projects into stray 3D points that contaminate the plane fit used by the wave estimator. Masking everything above the horizon removes this entire failure mode before matching begins. As a secondary benefit, the detected horizon is a useful reference for online camera calibration: on a correctly rectified stereo pair the horizon should appear at the same image row and orientation in both views, so a residual vertical offset or tilt between the two detected lines directly reveals a drift in the inter-camera rotation.
 
 Six interchangeable disparity-estimation backends were implemented and evaluated, sharing the same input/output contract (rectified stereo pair in, scaled disparity and packed point-cloud-ready output out, plus shared sky/horizon masking) so that they are drop-in replacements for one another and a fair comparison is possible without touching the rest of the pipeline:
 

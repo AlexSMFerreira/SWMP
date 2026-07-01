@@ -119,13 +119,18 @@ English gist plus the concrete action.
 
 ## Suggested execution order
 
-1. **Structural/text-only, low effort:** title trim, remove 2.1 heading, de-arrow the
-   two phrases, reframe Constraints, rewrite the two "chatgpt"/confusing sentences.
-2. **Figure referencing pass:** add in-text refs for Figs 1, 3, 4, 5, 12, 13; move
-   Fig 13/14/15 out of Conclusions into Sec 3.
-3. **New content:** technology/sensor comparison table + justification (3.2); Hough
-   transform explanation + sky-exclusion rationale (3.2); parameter-tuning rationale per
-   backend (3.2); WASS-not-real-time note.
+1. ✅ **DONE — Structural/text-only, low effort:** title trimmed to "Methodology",
+   removed 2.1 heading, de-arrowed the two `measure→implement→re-verify` phrases,
+   reframed Constraints, rewrote the two "chatgpt"/confusing sentences.
+2. ✅ **DONE — Figure referencing pass:** in-text refs added for Figs 1, 3, 4, 5, 6–11,
+   12, 13–15; Figs 4/5 reordered after their lead-in text; Figs 13/14/15 moved next to
+   the paragraphs they illustrate (now render in Sec 3.4, before Conclusions).
+3. **New content (IN PROGRESS):**
+   - ✅ technology/sensor comparison table (3.2, adapted from the bibliographic review).
+   - ✅ Hough transform explanation + sky-exclusion rationale + online-calibration note (3.2).
+   - ⬜ parameter-tuning rationale per backend (3.2).
+   - ⬜ WASS-not-real-time note (+ note: WASSfast N/A here — needs constant
+     camera-to-mean-sea-plane geometry, per the WASSfast paper).
 4. **Figure regeneration:** higher-res Fig 4 (left+right same instant), Fig 5, and
    disparity/point-cloud figures with source camera image alongside; better point-cloud
    viewpoint showing waves. 

@@ -10,10 +10,10 @@
 \contentsline {section}{\numberline {3}Solution development}{8}{}%
 \contentsline {subsection}{\numberline {3.1}Requirements}{8}{}%
 \contentsline {subsection}{\numberline {3.2}Architecture and technologies}{9}{}%
-\contentsline {subsection}{\numberline {3.3}Developed solution}{17}{}%
-\contentsline {subsection}{\numberline {3.4}Validation}{17}{}%
-\contentsline {section}{\numberline {4}Conclusions}{22}{}%
-\contentsline {subsection}{\numberline {4.1}Results achieved}{22}{}%
-\contentsline {subsection}{\numberline {4.2}Lessons learned}{23}{}%
-\contentsline {subsection}{\numberline {4.3}Future work}{24}{}%
-\contentsline {subsection}{\numberline {4.4}SDG impact}{24}{}%
+\contentsline {subsection}{\numberline {3.3}Developed solution}{18}{}%
+\contentsline {subsection}{\numberline {3.4}Validation}{19}{}%
+\contentsline {section}{\numberline {4}Conclusions}{24}{}%
+\contentsline {subsection}{\numberline {4.1}Results achieved}{24}{}%
+\contentsline {subsection}{\numberline {4.2}Lessons learned}{25}{}%
+\contentsline {subsection}{\numberline {4.3}Future work}{26}{}%
+\contentsline {subsection}{\numberline {4.4}SDG impact}{26}{}%

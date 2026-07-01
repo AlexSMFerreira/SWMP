@@ -15,6 +15,7 @@
 
 \textbf{Constraints:}
 \begin{itemize}
-	\item The sea surface is a low-texture, specular, non-Lambertian imaging target, which is adversarial to conventional stereo-matching assumptions (see Section~\ref{sec:architecture}).
 	\item \begin{sloppypar}The system must operate on a single embedded edge-AI module (NVIDIA Jetson Orin Nano-class, 8~GB shared memory), which imposes strict constraints on the GPU budget available for disparity estimation.\end{sloppypar}
+	\item Development and testing were limited to the hardware and tooling available: a single development workstation, the existing test structure, with limited scope to alter the physical setup, in order to mimic the conditions of the final deployment.
+	\item Validation depended on recorded datasets, as due to time constraints and meteorological conditions, no further test campaigns could be run in order to gather data under different or rougher sea states and test the pipeline live on the vessel.
 \end{itemize}

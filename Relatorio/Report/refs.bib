@@ -550,3 +550,17 @@ volume = {Nr. 12},
   year      = {2012},
   doi       = {10.1109/ICRA.2012.6224570}
 }
+
+@Article{rs13183780,
+AUTHOR = {Pistellato, Mara and Bergamasco, Filippo and Torsello, Andrea and Barbariol, Francesco and Yoo, Jeseon and Jeong, Jin-Yong and Benetazzo, Alvise},
+TITLE = {A Physics-Driven CNN Model for Real-Time Sea Waves 3D Reconstruction},
+JOURNAL = {Remote Sensing},
+VOLUME = {13},
+YEAR = {2021},
+NUMBER = {18},
+ARTICLE-NUMBER = {3780},
+URL = {https://www.mdpi.com/2072-4292/13/18/3780},
+ISSN = {2072-4292},
+ABSTRACT = {One of the most promising techniques for the analysis of Spatio-Temporal ocean wave fields is stereo vision. Indeed, the reconstruction accuracy and resolution typically outperform other approaches like radars, satellites, etc. However, it is computationally expensive so its application is typically restricted to the analysis of short pre-recorded sequences. What prevents such methodology from being truly real-time is the final 3D surface estimation from a scattered, non-equispaced point cloud. Recently, we studied a novel approach exploiting the temporal dependence of subsequent frames to iteratively update the wave spectrum over time. Albeit substantially faster, the unpredictable convergence time of the optimization involved still prevents its usage as a continuously running remote sensing infrastructure. In this work, we build upon the same idea, but investigating the feasibility of a fully data-driven Machine Learning (ML) approach. We designed a novel Convolutional Neural Network that learns how to produce an accurate surface from the scattered elevation data of three subsequent frames. The key idea is to embed the linear dispersion relation into the model itself to physically relate the sparse points observed at different times. Assuming that the scattered data are uniformly distributed in the spatial domain, this has the same effect of increasing the sample density of each single frame. Experiments demonstrate how the proposed technique, even if trained with purely synthetic data, can produce accurate and physically consistent surfaces at five frames per second on a modern PC.},
+DOI = {10.3390/rs13183780}
+}
